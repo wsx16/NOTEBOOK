@@ -1,3 +1,4 @@
-Load "STM32U5\\STM32U5.axf" 
-Erase Done.Programming Done.Verify OK.Application running ...
-Flash Load finished at 09:53:25
+*** Using Compiler 'V6.24', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
+Build target 'STM32U5'
+Note: source file '..\Core\lvgl\src\core\gui_wifi.c' - object file renamed from 'STM32U5\gui_wifi.o' to 'STM32U5\gui_wifi_1.o'."STM32U5\STM32U5.axf" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:12

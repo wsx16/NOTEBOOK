@@ -277,7 +277,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x800a000</StartAddress>
+                <StartAddress>0x8000000</StartAddress>
                 <Size>0x50000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -1294,11 +1294,6 @@
               <FilePath>..\Core\LCD\bsp_ft6336.h</FilePath>
             </File>
             <File>
-              <FileName>lvgl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\lvgl\src\core\lvgl.c</FilePath>
-            </File>
-            <File>
               <FileName>lvgls.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Core\lvgl\src\core\lvgls.h</FilePath>
@@ -1307,6 +1302,11 @@
               <FileName>gui_wifi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\lvgl\src\core\gui_wifi.c</FilePath>
+            </File>
+            <File>
+              <FileName>lvgls.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\lvgl\src\core\lvgls.c</FilePath>
             </File>
           </Files>
         </Group>

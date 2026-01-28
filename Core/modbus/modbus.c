@@ -45,7 +45,7 @@ void Modbus_Rx_Handler(uint16_t Size)
     }
     uart_rx_len += Size;
 
-    /* 2) 只接受 4 或 5 字节（你的实际协议定义） */
+    /* 2) 只接受 4 或 5 字节 */
     if (uart_rx_len < 4) {
         goto rx_restart;
     }

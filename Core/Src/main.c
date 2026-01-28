@@ -32,9 +32,7 @@
 #include "mqtt.h"
 #include "bsp_ili9341_4line.h"
 #include "bsp_ft6336.h"
-
 #include "lvgls.h"
-
 #include "gui_guider.h"
 #include "events_init.h"
 #include "stream_buffer.h"
@@ -89,10 +87,12 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+#if 1
 	__set_MSP(*((volatile unsigned long int *)0x0800A000));  
 	SCB->VTOR = FLASH_BASE | 0xA000;
 	__enable_irq();
-  /* USER CODE END 1 */
+#endif
+	/* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -246,15 +246,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 }
 /**
-  * @brief  串口错误回调函数 (防止 ESP8266 重启乱码导致串口锁死)
+  * @brief  串口错误回调函数 
   */
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     // 判断是否是连接 ESP8266 的串口 (UART5)
     if (huart->Instance == UART5) 
     {
-
-        
         // 重新开启空闲中断接收
         HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
     }
