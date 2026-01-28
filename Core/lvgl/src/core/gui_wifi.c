@@ -5,15 +5,8 @@
   ******************************************************************************
   */
 
-#include "lvgl.h"
-#include "FreeRTOS.h"
-#include "queue.h"
-#include "modbus.h" // 包含 modbus_pack_t, DEV_SYSTEM, FUNC_SAVE_WIFI 定义
+#include "lvgls.h"
 
-/* --- 外部变量引用 --- */
-extern QueueHandle_t queuehandle; // FreeRTOS 消息队列句柄
-extern char g_wifi_ssid[32];      // 用于存储 SSID 的全局变量
-extern char g_wifi_pwd[64];       // 用于存储 密码 的全局变量
 
 /* --- 静态变量 (控件指针) --- */
 static lv_obj_t * wifi_win = NULL; // 窗口容器

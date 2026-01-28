@@ -1,4 +1,5 @@
-stm32u5/gui_wifi.o: ..\Core\Src\gui_wifi.c ..\Core\lvgl\lvgl.h \
+stm32u5/gui_wifi_1.o: ..\Core\lvgl\src\core\gui_wifi.c \
+  ..\Core\lvgl\src\core\lvgls.h ..\Core\lvgl\lvgl.h \
   ..\Core\lvgl\src\misc\lv_log.h \
   ..\Core\lvgl\src\misc\..\lv_conf_internal.h \
   ..\Core\lvgl\src\misc\..\lv_conf_kconfig.h ..\Core\lvgl\lv_conf.h \
@@ -195,18 +196,9 @@ stm32u5/gui_wifi.o: ..\Core\Src\gui_wifi.c ..\Core\lvgl\lvgl.h \
   ..\Core\lvgl\src\extra\widgets\imgbtn\..\..\..\lvgl.h \
   ..\Core\lvgl\src\extra\widgets\span\lv_span.h \
   ..\Core\lvgl\src\extra\widgets\span\..\..\..\lvgl.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\FreeRTOS.h \
-  ..\Core\Inc\FreeRTOSConfig.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\projdefs.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\portable.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\deprecated_definitions.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM33_NTZ\non_secure\portmacro.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM33_NTZ\non_secure\portmacrocommon.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\mpu_wrappers.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\queue.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\task.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\list.h \
-  ..\Core\modbus\modbus.h ..\Core\Inc\usart.h ..\Core\Inc\main.h \
+  ..\Core\lvgl\examples\porting\lv_port_disp.h \
+  ..\Core\lvgl\examples\porting\lv_port_indev.h ..\Core\modbus\modbus.h \
+  ..\Core\Inc\usart.h ..\Core\Inc\main.h \
   ..\Drivers\STM32U5xx_HAL_Driver\Inc\stm32u5xx_hal.h \
   ..\Core\Inc\stm32u5xx_hal_conf.h \
   ..\Drivers\STM32U5xx_HAL_Driver\Inc\stm32u5xx_hal_rcc.h \
@@ -237,5 +229,16 @@ stm32u5/gui_wifi.o: ..\Core\Src\gui_wifi.c ..\Core\lvgl\lvgl.h \
   ..\Drivers\STM32U5xx_HAL_Driver\Inc\stm32u5xx_hal_uart_ex.h \
   ..\Drivers\STM32U5xx_HAL_Driver\Inc\stm32u5xx_hal_exti.h \
   ..\Core\Inc\app_freertos.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\FreeRTOS.h \
+  ..\Core\Inc\FreeRTOSConfig.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\projdefs.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\portable.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\deprecated_definitions.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM33_NTZ\non_secure\portmacro.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM33_NTZ\non_secure\portmacrocommon.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\mpu_wrappers.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\task.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\list.h \
   ..\Middlewares\Third_Party\CMSIS\RTOS2\Include\cmsis_os2.h \
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\queue.h \
   ..\Core\mqtt\mqtt.h

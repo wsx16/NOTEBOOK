@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32U575xx,LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32U5xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include/;../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/;../Middlewares/Third_Party/CMSIS/RTOS2/Include/;../Core/mqtt;../Core/modbus;../Core/LCD;../Core/lvgl;../Core/lvgl/src;../Core/lvgl/examples/porting;../Core/lvgl/guider/src/custom;../Core/lvgl/guider/src/generated;../Core/lvgl/guider/src/generated/guider_fonts</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32U5xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include/;../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/;../Middlewares/Third_Party/CMSIS/RTOS2/Include/;../Core/mqtt;../Core/modbus;../Core/LCD;../Core/lvgl;../Core/lvgl/src;../Core/lvgl/examples/porting;../Core/lvgl/guider/src/custom;../Core/lvgl/guider/src/generated;../Core/lvgl/guider/src/generated/guider_fonts;..\Core\lvgl\src\core</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1268,11 +1268,6 @@
               <FileType>5</FileType>
               <FilePath>..\Core\mqtt\mqtt.h</FilePath>
             </File>
-            <File>
-              <FileName>gui_wifi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\gui_wifi.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1297,6 +1292,21 @@
               <FileName>bsp_ft6336.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Core\LCD\bsp_ft6336.h</FilePath>
+            </File>
+            <File>
+              <FileName>lvgl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\lvgl\src\core\lvgl.c</FilePath>
+            </File>
+            <File>
+              <FileName>lvgls.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\lvgl\src\core\lvgls.h</FilePath>
+            </File>
+            <File>
+              <FileName>gui_wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\lvgl\src\core\gui_wifi.c</FilePath>
             </File>
           </Files>
         </Group>

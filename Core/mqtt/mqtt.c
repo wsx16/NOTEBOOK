@@ -39,49 +39,8 @@ bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout) {
     return false; // 超时未找到
 }
 
-/**
- * @brief  MQTT全链路初始化 
- */
-#if 0
-void MQTT_init(void) {
-		
-    printf("--- 开始初始化 ESP8266 ---\r\n");
 
-    // 1. 恢复出厂设置 
-    while(!send_AT_Cmd("AT+RESTORE", "ready", 2000)) {
-        printf("等待模组重启...\r\n");
-    }
-
-    // 2. 设置为 Station 模式
-    send_AT_Cmd("AT+CWMODE=1", "OK", 500);
-
-    // 3. 连接WiFi 
-    sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", WIFI_SSID, WIFI_PWD);
-    printf("正在连接WiFi...\r\n");
-    while(!send_AT_Cmd(cmd_buffer, "WIFI GOT IP", 5000)) {
-        printf("WiFi连接重试中...\r\n");
-    }
-
-    // 4. 配置MQTT用户属性 
-    sprintf(cmd_buffer, "AT+MQTTUSERCFG=0,1,\"%s\",\"%s\",\"%s\",0,0,\"\"", 
-            MQTTSERVER_CLIENT_ID, MQTTSERVER_USER, MQTTSERVER_PASSWORD);
-    send_AT_Cmd(cmd_buffer, "OK", 1000);
-
-    // 5. 连接指定的 MQTT 服务器
-    sprintf(cmd_buffer, "AT+MQTTCONN=0,\"%s\",%d,1", MQTTSERVER_IP, MQTTSERVER_PORT);
-    printf("正在尝试连接 MQTT Broker...\r\n");
-    if(send_AT_Cmd(cmd_buffer, "OK", 3000)) {
-        printf("MQTT 连接成功！\r\n");
-        // 6. 订阅主题
-        sprintf(cmd_buffer, "AT+MQTTSUB=0,\"%s\",1", MQTTSERVER_TOPIC);
-        send_AT_Cmd(cmd_buffer, "OK", 1000);
-    } else {
-        printf("连接服务器失败！\r\n");
-    }
-}
-
-#else
-// (可选) 解析当前 SSID 的辅助函数，用于同步 UI
+// 解析当前 SSID 的辅助函数，用于同步 UI
 void parse_current_ssid(void) {
     if(send_AT_Cmd("AT+CWJAP?", "+CWJAP:", 2000)) {
         char *p_start = strchr(esp_rx_buffer, '"');
@@ -97,7 +56,7 @@ void parse_current_ssid(void) {
         }
     }
 }
-#endif
+
 void MQTT_init(void) {
     printf("--- ESP8266 初始化 (自动连接模式) ---\r\n");
 

@@ -7,18 +7,19 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "app_freertos.h"
+
 // WiFi连接信息
 #define WIFI_SSID     "Hqyj"
 #define WIFI_PWD      "12345678"
 
 // MQTT服务器信息 
-//#define MQTTSERVER_IP       "192.168.10.106"
-#define MQTTSERVER_IP "broker.emqx.io"
-#define MQTTSERVER_PORT     1883
+
+#define MQTTSERVER_IP        "broker.emqx.io"
+#define MQTTSERVER_PORT      1883
 #define MQTTSERVER_CLIENT_ID "STM32U575_Client"
-#define MQTTSERVER_USER     "admin"
-#define MQTTSERVER_PASSWORD "public"
-#define MQTTSERVER_TOPIC    "topic"
+#define MQTTSERVER_USER      "admin"
+#define MQTTSERVER_PASSWORD  "public"
+#define MQTTSERVER_TOPIC     "topic"
 
 // 接收缓冲区大小
 #define RX_BUF_SIZE 512
