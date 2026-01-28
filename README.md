@@ -1,5 +1,5 @@
 # NOTEBOOK
-包括fs4412系统移植，驱动内容，stm32笔记
+fs4412系统移植，驱动内容，stm32笔记
 
 0.环境搭建(Keil + CubeMX,用最新版本，去官网下载)
 1.U5板子支持FreeRTOS
