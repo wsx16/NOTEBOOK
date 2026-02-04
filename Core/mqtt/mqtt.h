@@ -22,10 +22,11 @@
 #define MQTTSERVER_TOPIC     "topic"
 
 // 接收缓冲区大小
-#define RX_BUF_SIZE 512
+#define RX_BUF_SIZE 2048
 
 // 函数声明
 bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout);
+void CONNECT_WIFI();
 void MQTT_init(void);
 void publish_message(char *msg);
 extern void MQTT_Rx_Handler(uint16_t Size);

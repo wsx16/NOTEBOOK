@@ -8,7 +8,6 @@ char esp_rx_buffer[RX_BUF_SIZE]; // 存放模组回复的数据
  * @param  cmd: 指令内容; ack: 期待的应答字符串; timeout: 等待延时(ms)
  * @return true: 收到预期应答; false: 超时或应答错误
  */
-
 bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout) {
     // 1. 清空缓冲区
     memset(esp_rx_buffer, 0, RX_BUF_SIZE);
@@ -53,6 +52,43 @@ void parse_current_ssid(void) {
                 memset(g_wifi_ssid, 0, 32);
                 strncpy(g_wifi_ssid, p_start, len);
             }
+        }
+    }
+}
+
+void CONNECT_WIFI()
+{
+    // 2. 确保开启自动连接
+    send_AT_Cmd("AT+CWJAP=\"Redmi K70\",\"200212137\"", "WIFI GOT IP", 10000);
+    printf("等待 WiFi 自动连接...\r\n");
+
+    bool is_connected = false;
+    for(int i = 0; i < 10; i++) 
+    {
+        // 这里的延时用于给路由器分配 IP 的时间
+        vTaskDelay(pdMS_TO_TICKS(1000)); 
+        
+        // 发送查询 IP 指令
+        if(send_AT_Cmd("AT+CIFSR", "STAIP", 1000)) 
+        {
+            // 【关键修改】检查是否是无效 IP (0.0.0.0)
+            if(strstr(esp_rx_buffer, "0.0.0.0") != NULL) {
+                printf("正在获取 IP (当前 0.0.0.0) - %d/10\r\n", i+1);
+                continue; // 跳过本次循环，继续等待
+            }
+
+            // 获取到了有效 IP
+            is_connected = true;
+            printf("检测到有效 IP，WiFi 连接成功！\r\n");
+            
+            // 同步当前连接的 SSID 到全局变量，以便 UI 显示
+            parse_current_ssid();
+            
+            break; // 跳出循环，进行下一步
+        }
+        else 
+        {
+            printf("正在连接 WiFi (%d/10)...\r\n", i+1);
         }
     }
 }
@@ -105,23 +141,22 @@ void MQTT_init(void) {
     {
         printf("开始连接 MQTT...\r\n");
         
-        // 6. 配置 MQTT 用户信息
+        // 4. 配置 MQTT 用户信息
         sprintf(cmd_buffer, "AT+MQTTUSERCFG=0,1,\"%s\",\"%s\",\"%s\",0,0,\"\"", 
                 MQTTSERVER_CLIENT_ID, MQTTSERVER_USER, MQTTSERVER_PASSWORD);
         send_AT_Cmd(cmd_buffer, "OK", 1000);
 
-        // 7. 连接 Broker
+        // 5. 连接 Broker
         sprintf(cmd_buffer, "AT+MQTTCONN=0,\"%s\",%d,1", MQTTSERVER_IP, MQTTSERVER_PORT);
         if(send_AT_Cmd(cmd_buffer, "OK", 5000)) { // 连接服务器可能慢，给 5秒
             printf("MQTT 连接成功！\r\n");
             
-            // 8. 订阅主题
+            // 6. 订阅主题
             sprintf(cmd_buffer, "AT+MQTTSUB=0,\"%s\",1", MQTTSERVER_TOPIC);
             send_AT_Cmd(cmd_buffer, "OK", 2000);
         } else {
             printf("MQTT 连接失败 (可能服务器不可达)\r\n");
         }
-
     } else {
         // --- 没连上网的情况 ---
         printf("WiFi 未连接 (可能是新环境或密码错误)。\r\n");

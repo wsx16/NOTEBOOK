@@ -245,4 +245,5 @@ stm32u5/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Core\lvgl\examples\porting\lv_port_indev.h \
   ..\Core\lvgl\guider\src\generated\gui_guider.h \
   ..\Core\lvgl\guider\src\generated\events_init.h \
-  ..\Middlewares\Third_Party\FreeRTOS\Source\include\stream_buffer.h
+  ..\Middlewares\Third_Party\FreeRTOS\Source\include\stream_buffer.h \
+  ..\Core\OTA\version.h ..\Core\OTA\OTA.h

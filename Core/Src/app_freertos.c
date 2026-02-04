@@ -30,7 +30,7 @@
 #include "lv_port_disp.h"  // LVGL的显示支持
 #include "lv_port_indev.h" // LVGL的触屏支持
 #include "stream_buffer.h"
-
+#include "OTA.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +68,7 @@ const osThreadAttr_t defaultTask_attributes = {
 /* USER CODE BEGIN FunctionPrototypes */
 void lvgl(void const * argument);
 void F1_LogTask(void *argument);
-
+ 
 /* USER CODE END FunctionPrototypes */
 
 /**
@@ -146,7 +146,7 @@ void modbus_parse_task(void *argument)
 	uint8_t dev;
 	uint8_t func;
 	int ret;
-
+  OTA_init();
   /* Infinite loop */
   for(;;)
   {

@@ -36,7 +36,8 @@
 #include "gui_guider.h"
 #include "events_init.h"
 #include "stream_buffer.h"
-
+#include "version.h"
+#include "OTA.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,7 +120,16 @@ int main(void)
   MX_TIM6_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+	// 启动 Modbus 接收
+	HAL_UARTEx_ReceiveToIdle_IT(&huart1, (uint8_t *)buffer, MODBUS_MAX_PACK_LEN);
+  // 启动 MQTT (ESP8266) 接收 - UART5被OTA和MQTT共享
+	HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
+	// 启动 F0 接收
+  HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
+	
+	
 	FT6336_init();
+	ILI9341_Init();
 
 	lv_init();              // LVGL 初始化
   lv_port_disp_init();    // 注册LVGL的显示任务
@@ -130,11 +140,12 @@ int main(void)
 	setup_ui(&guider_ui);
 	events_init(&guider_ui);
 #endif
-	// 1. 启动 Modbus 接收
-	HAL_UARTEx_ReceiveToIdle_IT(&huart1, (uint8_t *)buffer, MODBUS_MAX_PACK_LEN);
-  // 启动 MQTT (ESP8266) 接收
-	HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
-	HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
+	if(*(uint32_t*)(version_add + 4 * 3) == 0xffffffff || *(uint32_t*)(version_add + 4 * 3) == 1)
+	{
+		uint32_t version[4] = {1,0,0,0};
+		version_set(version);
+	}
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

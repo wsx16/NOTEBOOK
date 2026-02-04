@@ -277,7 +277,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
+                <StartAddress>0x800a000</StartAddress>
                 <Size>0x50000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32U575xx,LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32U5xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include/;../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/;../Middlewares/Third_Party/CMSIS/RTOS2/Include/;../Core/mqtt;../Core/modbus;../Core/LCD;../Core/lvgl;../Core/lvgl/src;../Core/lvgl/examples/porting;../Core/lvgl/guider/src/custom;../Core/lvgl/guider/src/generated;../Core/lvgl/guider/src/generated/guider_fonts;..\Core\lvgl\src\core</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc;../Drivers/STM32U5xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32U5xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include/;../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/;../Middlewares/Third_Party/CMSIS/RTOS2/Include/;../Core/mqtt;../Core/modbus;../Core/LCD;../Core/lvgl;../Core/lvgl/src;../Core/lvgl/examples/porting;../Core/lvgl/guider/src/custom;../Core/lvgl/guider/src/generated;../Core/lvgl/guider/src/generated/guider_fonts;..\Core\lvgl\src\core;..\Core\OTA</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1267,6 +1267,41 @@
               <FileName>mqtt.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Core\mqtt\mqtt.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>OTA</GroupName>
+          <Files>
+            <File>
+              <FileName>md5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\OTA\md5.c</FilePath>
+            </File>
+            <File>
+              <FileName>md5.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\OTA\md5.h</FilePath>
+            </File>
+            <File>
+              <FileName>OTA.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\OTA\OTA.c</FilePath>
+            </File>
+            <File>
+              <FileName>OTA.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\OTA\OTA.h</FilePath>
+            </File>
+            <File>
+              <FileName>version.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\OTA\version.c</FilePath>
+            </File>
+            <File>
+              <FileName>version.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\OTA\version.h</FilePath>
             </File>
           </Files>
         </Group>

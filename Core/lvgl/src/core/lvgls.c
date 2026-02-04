@@ -7,7 +7,7 @@ lv_obj_t * ui_finger_screen; // 指纹功能屏幕
 
 // 1. LED 控制：STM32U575 的 LED 连接在 PC13 [3], [4]
 static void led_event_cb(lv_event_t * e) {
-		static int flag = 1;
+	static int flag = 1;
     if (lv_event_get_code(e) == LV_EVENT_CLICKED)
     {
         modbus_pack_t pack = {0};
@@ -30,7 +30,7 @@ static void led_event_cb(lv_event_t * e) {
 
 // 2. 蜂鸣器控制：BEEP 连接在 PA15 [6]
 static void beep_event_cb(lv_event_t * e) {
-	  static int flag = 1;
+	static int flag = 1;
     if (lv_event_get_code(e) == LV_EVENT_CLICKED)
     {
         modbus_pack_t pack = {0};
@@ -53,31 +53,30 @@ static void beep_event_cb(lv_event_t * e) {
 
 // 3. mqtt物联网通信
 static void mqtt_event_cb(lv_event_t * e) {
+    static int flag = 1;
     if(lv_event_get_code(e) == LV_EVENT_CLICKED) {
+        if (lv_event_get_code(e) == LV_EVENT_CLICKED)
+        {
+            modbus_pack_t pack = {0};
 
-			static int flag = 1;
-			if (lv_event_get_code(e) == LV_EVENT_CLICKED)
-			{
-					modbus_pack_t pack = {0};
+            pack.dev  = WIFI;
+            if (flag)
+            {
+                pack.func = ON;
+                flag = 0;
+            }
+            else
+            {
+                pack.func = OFF;
+                flag = 1;
+            }
 
-					pack.dev  = WIFI;
-					if (flag)
-					{
-						pack.func = ON;
-						flag = 0;
-					}
-					else
-					{
-						pack.func = OFF;
-						flag = 1;
-					}
-
-					xQueueSend(queuehandle, &pack, 0);
-			}
+            xQueueSend(queuehandle, &pack, 0);
+        }
     }
 }
 
-// 点击“设置”按钮的回调函数
+// 4. 点击“设置”按钮的回调函数
 static void wifi_setting_btn_cb(lv_event_t * e) {
     if(lv_event_get_code(e) == LV_EVENT_CLICKED) {
         // 只有点击时，才创建弹窗
@@ -112,7 +111,7 @@ static void screen_switch_event_cb(lv_event_t * e) {
 
 static lv_obj_t * ui_finger_del_screen;
 static lv_obj_t * ta_del_id;
-static lv_obj_t * kb_del;   // 键盘对象
+static lv_obj_t * kb_del;   
 
 static void ta_focus_cb(lv_event_t * e);
 static void kb_event_cb(lv_event_t * e);
@@ -141,7 +140,7 @@ static void setup_finger_delete_screen(void)
     lv_textarea_set_accepted_chars(ta_del_id, "0123456789");
     lv_textarea_set_placeholder_text(ta_del_id, "0-9");
 
-    /* 重点：监听 focus/defocus */
+    /* 监听 focus/defocus */
     lv_obj_add_event_cb(ta_del_id, ta_focus_cb, LV_EVENT_FOCUSED, NULL);
     lv_obj_add_event_cb(ta_del_id, ta_focus_cb, LV_EVENT_DEFOCUSED, NULL);
 
@@ -170,8 +169,6 @@ static void setup_finger_delete_screen(void)
     lv_obj_align(kb_del, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_add_flag(kb_del, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_event_cb(kb_del, kb_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-
 }
 
 static void ta_focus_cb(lv_event_t * e)
@@ -182,18 +179,15 @@ static void ta_focus_cb(lv_event_t * e)
     {
         /* 键盘出现：覆盖按钮区域 */
         lv_obj_clear_flag(kb_del, LV_OBJ_FLAG_HIDDEN);
-
-        /* 你要的效果：按钮消失 */
+        /* 按钮消失 */
         lv_obj_add_flag(btn_ok,   LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-
         lv_keyboard_set_textarea(kb_del, ta_del_id);
     }
     else if (code == LV_EVENT_DEFOCUSED)
     {
         /* 退出输入框：键盘收起、按钮恢复 */
         lv_obj_add_flag(kb_del, LV_OBJ_FLAG_HIDDEN);
-
         lv_obj_clear_flag(btn_ok,   LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
     }
@@ -204,7 +198,6 @@ static void kb_event_cb(lv_event_t * e)
 {
     lv_obj_t * kb = lv_event_get_target(e);
 
-    /* 先交给默认处理：把数字写入 textarea */
     lv_keyboard_def_event_cb(e);
 
     uint16_t btn_id = lv_keyboard_get_selected_btn(kb);
@@ -237,7 +230,7 @@ static void finger_del_confirm_cb(lv_event_t * e)
 
     xQueueSend(queuehandle, &pack, pdMS_TO_TICKS(10));
 
-    // 发送后回到指纹主界面（可选）
+    // 发送后回到指纹主界面
     lv_scr_load(ui_finger_screen);
 }
 
@@ -250,8 +243,8 @@ static void finger_del_cancel_cb(lv_event_t * e)
 
 // --- 初始化指纹子屏幕 ---
 void setup_finger_screen(void) {
-    // 1. 创建屏幕对象
 
+    // 1. 创建屏幕对象
     ui_finger_screen = lv_obj_create(NULL);
     
     // 2. 添加标题
@@ -286,7 +279,6 @@ void setup_finger_screen(void) {
     lv_obj_t * lbl_delete = lv_label_create(btn_delete);
     lv_label_set_text(lbl_delete, "Delete (3)");
     lv_obj_center(lbl_delete);
-    // 绑定事件：发送 '3'
 
     // 6. 创建 [返回] 按钮
     lv_obj_t * btn_back = lv_btn_create(ui_finger_screen);
@@ -299,8 +291,8 @@ void setup_finger_screen(void) {
     // 绑定事件：跳转回主屏幕 (此时 ui_main_screen 在 setup_peripheral_control_ui 开头已赋值)
     lv_obj_add_event_cb(btn_back, screen_switch_event_cb, LV_EVENT_CLICKED, ui_main_screen);
 		
-		setup_finger_delete_screen();
-		lv_obj_add_event_cb(btn_delete, screen_switch_event_cb, LV_EVENT_CLICKED, ui_finger_del_screen);
+	setup_finger_delete_screen();
+	lv_obj_add_event_cb(btn_delete, screen_switch_event_cb, LV_EVENT_CLICKED, ui_finger_del_screen);
 
 }
 
@@ -342,26 +334,24 @@ void setup_peripheral_control_ui(void) {
     lv_obj_t * btn_set = lv_btn_create(lv_scr_act());
     lv_obj_set_pos(btn_set, 10, 190); // 纵向排布
     lv_obj_set_size(btn_set, 150, 50);
-    
     lv_obj_t * label_set = lv_label_create(btn_set);
     lv_label_set_text(label_set, "WiFi Settings"); // 按钮文字
     lv_obj_align(label_set, LV_ALIGN_CENTER, 0, 0);
 
-		lv_obj_add_event_cb(btn_set, wifi_setting_btn_cb, LV_EVENT_CLICKED, NULL);
+	lv_obj_add_event_cb(btn_set, wifi_setting_btn_cb, LV_EVENT_CLICKED, NULL);
 		
     // --- 指纹界面 ---
     lv_obj_t * btn_finger_menu = lv_btn_create(ui_main_screen);
-    lv_obj_set_pos(btn_finger_menu, 10, 250); // 
+    lv_obj_set_pos(btn_finger_menu, 10, 250); 
     lv_obj_set_size(btn_finger_menu, 150, 50);
     lv_obj_t * label_menu = lv_label_create(btn_finger_menu);
-    lv_label_set_text(label_menu, "Fingerprint >");
+    lv_label_set_text(label_menu, "Fingerprint");
     lv_obj_align(label_menu, LV_ALIGN_CENTER, 0, 0);
 
-    // 2. 初始化指纹子屏幕
+    // 初始化指纹子屏幕
     setup_finger_screen();
 
-    // 3. 绑定跳转事件
-    // 主界面 -> 指纹界面
+    // 绑定跳转事件
     lv_obj_add_event_cb(btn_finger_menu, screen_switch_event_cb, LV_EVENT_CLICKED, ui_finger_screen);
 
 }

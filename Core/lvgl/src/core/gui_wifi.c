@@ -36,11 +36,11 @@ void create_wifi_settings_window(void)
     wifi_win = lv_obj_create(lv_scr_act());
     lv_obj_set_size(wifi_win, 220, 260); 
     lv_obj_center(wifi_win); // 初始居中
-    
+
     // 使用垂直 Flex 布局，控件自动从上往下排列
     lv_obj_set_flex_flow(wifi_win, LV_FLEX_FLOW_COLUMN); 
     lv_obj_set_flex_align(wifi_win, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    
+  
     // 3. 创建标题栏区域 (用于放置标题和关闭按钮)
     lv_obj_t * title_cont = lv_obj_create(wifi_win);
     lv_obj_set_size(title_cont, 190, 40);
@@ -76,7 +76,7 @@ void create_wifi_settings_window(void)
     
     ta_pwd = lv_textarea_create(wifi_win);
     lv_textarea_set_one_line(ta_pwd, true);
-    lv_textarea_set_password_mode(ta_pwd, true); // 密文显示
+    lv_textarea_set_password_mode(ta_pwd, true); 
     lv_obj_set_width(ta_pwd, 180);
     lv_textarea_set_max_length(ta_pwd, 63);
     lv_obj_add_event_cb(ta_pwd, ta_event_cb, LV_EVENT_ALL, NULL);
@@ -84,7 +84,7 @@ void create_wifi_settings_window(void)
     // 6. 连接保存按钮
     lv_obj_t * btn_save = lv_btn_create(wifi_win);
     lv_obj_set_width(btn_save, 120);
-		lv_obj_set_style_pad_row(wifi_win, 10, 0); 
+	lv_obj_set_style_pad_row(wifi_win, 10, 0); 
     
     lv_obj_t * lbl_save = lv_label_create(btn_save);
     lv_label_set_text(lbl_save, "Save & Connect");
@@ -107,13 +107,12 @@ static void ta_event_cb(lv_event_t * e)
 
     if (code == LV_EVENT_FOCUSED || code == LV_EVENT_CLICKED) 
     {
-        // 聚焦时：显示键盘
+        // 显示键盘
         if (kb != NULL) {
             lv_keyboard_set_textarea(kb, ta);
             lv_obj_clear_flag(kb, LV_OBJ_FLAG_HIDDEN);
             
-            // 关键逻辑：键盘弹出时，把窗口往上移，防止被遮挡
-            // 240x320 屏幕，键盘占一半，窗口必须移到最顶端
+            // 键盘弹出时，把窗口往上移，防止被遮挡
             if(wifi_win != NULL) {
                 lv_obj_align(wifi_win, LV_ALIGN_TOP_MID, 0, 5);
             }
@@ -145,28 +144,25 @@ static void btn_save_event_cb(lv_event_t * e)
         const char * txt_ssid = lv_textarea_get_text(ta_ssid);
         const char * txt_pwd = lv_textarea_get_text(ta_pwd);
 
-        // 2. 存入全局变量 (确保有 include <string.h>)
+        // 2. 存入全局变量
         memset(g_wifi_ssid, 0, 32);
         memset(g_wifi_pwd, 0, 64);
         strncpy(g_wifi_ssid, txt_ssid, 31);
         strncpy(g_wifi_pwd, txt_pwd, 63);
 
-        // 3. 发送指令到 Modbus 任务 (Dev: System, Func: Save Wifi)
+        // 3. 发送指令到 Modbus 任务
         modbus_pack_t pack;
-        pack.dev = DEV_SYSTEM;      // 0xFF
-        pack.func = FUNC_SAVE_WIFI; // 0xAA
-        pack.crc = 0;               // 内部指令不需要CRC
+        pack.dev = DEV_SYSTEM;      
+        pack.func = FUNC_SAVE_WIFI; 
+        pack.crc = 0;               
         
-        // 发送队列 (超时设为0，避免UI卡顿)
+        // 发送队列
         if(xQueueSend(queuehandle, &pack, 0) == pdPASS) {
              lv_label_set_text(lv_obj_get_child(lv_event_get_target(e), 0), "Sent!");
         } else {
              lv_label_set_text(lv_obj_get_child(lv_event_get_target(e), 0), "Busy!");
         }
 
-        // 4. (可选) 发送完自动关闭窗口，保持界面整洁
-        // 延时关闭逻辑比较复杂，这里直接手动点X关闭或者保持打开查看状态
-        
         // 收起键盘
         if(kb != NULL) {
             lv_keyboard_set_textarea(kb, NULL);
@@ -189,7 +185,7 @@ static void btn_close_event_cb(lv_event_t * e)
             kb = NULL;
         }
         
-        // 2. 删除窗口对象 (里面的所有子对象如 Textarea 也会被自动删除)
+        // 2. 删除窗口对象
         if (wifi_win != NULL) {
             lv_obj_del(wifi_win);
             wifi_win = NULL; // 只有置空，下次才能重新创建

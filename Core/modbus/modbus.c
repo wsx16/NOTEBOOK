@@ -80,8 +80,6 @@ rx_restart:
                                MODBUS_MAX_PACK_LEN - uart_rx_len);
 }
 
-
-
 /**
  * @brief  外设控制逻辑处理函数
  *         根据解析出的设备号和功能码执行具体动作
@@ -92,39 +90,6 @@ void peripheral_ctrl(const modbus_pack_t *p)
 {
 	uint8_t dev  = p->dev;
   uint8_t func = p->func;
-	if (dev == DEV_SYSTEM) 
-	{
-		if (func == FUNC_SAVE_WIFI) 
-		{
-				printf("[System] Start configuring WiFi...\r\n");
-				printf("SSID: %s, PWD: %s\r\n", g_wifi_ssid, g_wifi_pwd);
-
-				// 1. 断开现有连接
-				close_mqtt(); 
-
-				// 2. 组装 AT+CWJAP_DEF 指令 (连接并保存到 Flash)
-				sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", g_wifi_ssid, g_wifi_pwd);
-
-				// 3. 发送指令 (给予 15秒 超时，因为连接路由很慢)
-				if(send_AT_Cmd(cmd_buffer, "WIFI GOT IP", 15000)) 
-				{
-						printf("[System] WiFi Connected & Saved!\r\n");
-						
-						// 4. 连接成功，重新初始化 MQTT
-						MQTT_init(); 
-						
-						// 5. 发送成功应答
-						modbus_ack_send(dev, func, MODBUS_OK);
-				} 
-				else 
-				{
-						printf("[System] WiFi Connection Failed!\r\n");
-						// 发送失败应答
-						modbus_ack_send(dev, func, MODBUS_FUNC_ERR);
-				}
-		}
-		return; // 处理完系统指令直接返回
-	}
 	switch(dev)
 	{
 		case LED: // 处理 LED 设备
@@ -170,7 +135,6 @@ void peripheral_ctrl(const modbus_pack_t *p)
 								printf("[U5] Delete ignored: invalid id=0x%02X\r\n", id);
 								break;
 						}
-
 						uint8_t cmd = FINGER_CMD_DELETE; // '3'
 						HAL_UART_Transmit(&huart3, &cmd, 1, 100);
 						HAL_UART_Transmit(&huart3, &id,  1, 100);
@@ -181,10 +145,37 @@ void peripheral_ctrl(const modbus_pack_t *p)
 				}
 				break;
 			}
-		default: 
-		  modbus_ack_send(dev, func, MODBUS_UNKNOW_DEV);
+		case DEV_SYSTEM:
+			if (func == FUNC_SAVE_WIFI) 
+			{
+				printf("[System] Start configuring WiFi...\r\n");
+				printf("SSID: %s, PWD: %s\r\n", g_wifi_ssid, g_wifi_pwd);
+				// 1. 断开现有连接
+				close_mqtt(); 
+
+				// 2. AT+CWJAP 指令 (连接并保存到 Flash)
+				sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", g_wifi_ssid, g_wifi_pwd);
+
+				// 3. 发送指令 (给予 15秒 超时，因为连接路由很慢)
+				if(send_AT_Cmd(cmd_buffer, "WIFI GOT IP", 15000)) 
+				{
+						printf("[System] WiFi Connected & Saved!\r\n");
+						
+						// 4. 连接成功，重新初始化 MQTT
+						MQTT_init(); 
+						
+						// 5. 发送成功应答
+						modbus_ack_send(dev, func, MODBUS_OK);
+				}
+				else 
+				{
+						printf("[System] WiFi Connection Failed!\r\n");
+						// 发送失败应答
+						modbus_ack_send(dev, func, MODBUS_FUNC_ERR);
+				}
+			}
+		return; // 处理完系统指令直接返回
 	}
-	return;
 }
 
 /**
