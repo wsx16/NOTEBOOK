@@ -145,10 +145,10 @@ static void btn_save_event_cb(lv_event_t * e)
         const char * txt_pwd = lv_textarea_get_text(ta_pwd);
 
         // 2. 存入全局变量
-        memset(g_wifi_ssid, 0, 32);
-        memset(g_wifi_pwd, 0, 64);
-        strncpy(g_wifi_ssid, txt_ssid, 31);
-        strncpy(g_wifi_pwd, txt_pwd, 63);
+        memset(wifi_ssid, 0, 32);
+        memset(wifi_pwd, 0, 64);
+        strncpy(wifi_ssid, txt_ssid, 31);
+        strncpy(wifi_pwd, txt_pwd, 63);
 
         // 3. 发送指令到 Modbus 任务
         modbus_pack_t pack;

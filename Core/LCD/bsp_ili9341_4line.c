@@ -553,20 +553,7 @@ void LCD_DrawCircle(uint16_t _usX, uint16_t _usY, uint16_t _usRadius, uint16_t _
 		CurX++;
 	}
 }
-/* 
- * 添加到 bsp_ili9341_4line.c 的末尾 
- * 功能：专门配合 LVGL 批量写入显存
- */
-//void ILI9341_WriteBuffer(uint16_t *pData, uint32_t Size)
-//{
-//    // 1. 发送写内存指令 (0x2C)
-//    // 你的结构体是 ILI9341dev，写内存指令是 wramcmd (通常是 0x2C)
-//    ILI9341_WR_REG(ILI9341dev.wramcmd); 
-//    
-//    // 2. 批量发送数据
-//    // SPI 是 8 位模式，传输长度 = 像素数 * 2 (因为 1个像素 = 16bit = 2字节)
-//    HAL_SPI_Transmit(&hspi1, (uint8_t*)pData, Size * 2, 1000);
-//}
+
 #define LCD_WIDTH  320
 
 static uint8_t tx_buf[LCD_WIDTH * 2];

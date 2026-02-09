@@ -60,8 +60,8 @@
 /* USER CODE BEGIN PV */
 uint8_t f1_rx_buffer[512]; 
 lv_ui guider_ui;
-char g_wifi_ssid[32];
-char g_wifi_pwd[64];
+char wifi_ssid[32];
+char wifi_pwd[64];
 char test[128];
 
 extern StreamBufferHandle_t sb_f1_log;
@@ -123,13 +123,12 @@ int main(void)
 	// 启动 Modbus 接收
 	HAL_UARTEx_ReceiveToIdle_IT(&huart1, (uint8_t *)buffer, MODBUS_MAX_PACK_LEN);
   // 启动 MQTT (ESP8266) 接收 - UART5被OTA和MQTT共享
-	HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
+	HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_buffer, RX_BUF_SIZE);
 	// 启动 F0 接收
   HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
 	
 	
 	FT6336_init();
-	ILI9341_Init();
 
 	lv_init();              // LVGL 初始化
   lv_port_disp_init();    // 注册LVGL的显示任务
@@ -265,7 +264,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
     if (huart->Instance == UART5) 
     {
         // 重新开启空闲中断接收
-        HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
+        HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_buffer, RX_BUF_SIZE);
     }
     // 如果是 Modbus 串口出错，也要重启
     else if (huart->Instance == USART1)

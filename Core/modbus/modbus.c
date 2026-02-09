@@ -4,8 +4,8 @@
 uint8_t buffer[MODBUS_MAX_PACK_LEN];
 // 记录当前接收到的数据总长度
 uint16_t uart_rx_len;
-extern char g_wifi_ssid[32];
-extern char g_wifi_pwd[64];
+extern char wifi_ssid[32];
+extern char wifi_pwd[64];
 extern char cmd_buffer[128];
 extern uint8_t f1_rx_buffer[512]; 
 /**
@@ -31,6 +31,80 @@ uint16_t CRC16_Modbus(uint8_t *data, uint16_t length)
     }
     return crc; // 4. 返回算出来的 2 字节校验码
 }
+
+#if 0
+
+
+void Modbus_Rx_Handler(uint16_t Size)
+{
+
+    // 累加接收数据长度
+    if ((uart_rx_len + Size) > MODBUS_MAX_PACK_LEN) {
+        // 缓冲区将溢出，重新开始
+        uart_rx_len = 0;
+        goto rx_restart;
+    }
+    uart_rx_len += Size;
+
+    // 检查最小帧头：至少5字节(HEAD+DEV+FUNC+LEN_L+LEN_H)
+    if (uart_rx_len < 5) {
+        goto rx_restart;
+    }
+    
+    // 获取帧头和长度字段
+    uint8_t head = buffer[0];
+    uint16_t data_len = (uint16_t)buffer[3] | ((uint16_t)buffer[4] << 8);
+    
+    // 检查帧头
+    if (head != FIX_TX_HEAD) {
+        // 帧头错误，重新开始
+        uart_rx_len = 0;
+        goto rx_restart;
+    }
+
+    // 计算整帧长度：1(头) + 1(设备) + 1(功能码) + 2(长度) + len(数据) + 2(CRC)
+    uint16_t expected_len = 5 + data_len + MODBUS_CRC_LEN;
+
+    // 检查长度是否合理
+    if (expected_len > MODBUS_MAX_PACK_LEN) {
+        uart_rx_len = 0;
+        goto rx_restart;
+    }
+
+    // 检查是否收到完整帧
+    if (uart_rx_len < expected_len) {
+        // 尚未收完，继续等待
+        goto rx_restart;
+    }
+
+    // 接收到完整帧
+    if (uart_rx_len == expected_len) {
+        // 创建接收缓冲结构，发送到队列
+        modbus_rx_buffer_t rx_data = {0};
+        rx_data.len = uart_rx_len;
+        memcpy(rx_data.buffer, buffer, uart_rx_len);
+        
+        // 通过xQueueSendFromISR将数据发送到队列
+        if (modbus_queue != NULL) {
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            xQueueSendFromISR(modbus_queue, &rx_data, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+
+        // 重置接收缓冲区
+        uart_rx_len = 0;
+    } else {
+        // 多收了数据（粘包）
+        uart_rx_len = 0;
+    }
+
+rx_restart:
+    // 重新启动UART接收
+    HAL_UARTEx_ReceiveToIdle_IT(&huart1, buffer + uart_rx_len,
+                               MODBUS_MAX_PACK_LEN - uart_rx_len);
+}
+
+#endif
 
 
 void Modbus_Rx_Handler(uint16_t Size)
@@ -149,12 +223,12 @@ void peripheral_ctrl(const modbus_pack_t *p)
 			if (func == FUNC_SAVE_WIFI) 
 			{
 				printf("[System] Start configuring WiFi...\r\n");
-				printf("SSID: %s, PWD: %s\r\n", g_wifi_ssid, g_wifi_pwd);
+				printf("SSID: %s, PWD: %s\r\n", wifi_ssid, wifi_pwd);
 				// 1. 断开现有连接
 				close_mqtt(); 
 
 				// 2. AT+CWJAP 指令 (连接并保存到 Flash)
-				sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", g_wifi_ssid, g_wifi_pwd);
+				sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", wifi_ssid, wifi_pwd);
 
 				// 3. 发送指令 (给予 15秒 超时，因为连接路由很慢)
 				if(send_AT_Cmd(cmd_buffer, "WIFI GOT IP", 15000)) 

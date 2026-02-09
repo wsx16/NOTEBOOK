@@ -1,7 +1,7 @@
 #include "mqtt.h"
 
 char cmd_buffer[128];
-char esp_rx_buffer[RX_BUF_SIZE]; // 存放模组回复的数据
+char esp_buffer[RX_BUF_SIZE]; // 存放模组回复的数据
 
 /**
  * @brief  带响应检查的AT指令发送函数
@@ -10,7 +10,7 @@ char esp_rx_buffer[RX_BUF_SIZE]; // 存放模组回复的数据
  */
 bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout) {
     // 1. 清空缓冲区
-    memset(esp_rx_buffer, 0, RX_BUF_SIZE);
+    memset(esp_buffer, 0, RX_BUF_SIZE);
     
     // 2. 发送指令
     HAL_UART_Transmit(&huart5, (uint8_t *)cmd, strlen(cmd), 100);
@@ -25,8 +25,8 @@ bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout) {
     while((HAL_GetTick() - tickStart) < timeout) {
         
         // 检查缓冲区是否包含关键词
-        if (ack != NULL && strstr(esp_rx_buffer, ack) != NULL) {
-            printf("ACK: %s\r\n", esp_rx_buffer); // 打印收到的正确回复
+        if (ack != NULL && strstr(esp_buffer, ack) != NULL) {
+            printf("ACK: %s\r\n", esp_buffer); // 打印收到的正确回复
             return true; // 成功找到
         }
         
@@ -34,23 +34,23 @@ bool send_AT_Cmd(char *cmd, char *ack, uint32_t timeout) {
 		vTaskDelay(pdMS_TO_TICKS(50));
     }
     
-    printf("Timeout or Error: %s\r\n", esp_rx_buffer);
+    printf("Timeout or Error: %s\r\n", esp_buffer);
     return false; // 超时未找到
 }
 
 
-// 解析当前 SSID 的辅助函数，用于同步 UI
+// 解析当前 SSID 的辅助函数
 void parse_current_ssid(void) {
     if(send_AT_Cmd("AT+CWJAP?", "+CWJAP:", 2000)) {
-        char *p_start = strchr(esp_rx_buffer, '"');
-        if (p_start) {
-            p_start++;
-            char *p_end = strchr(p_start, '"');
-            if (p_end) {
-                int len = p_end - p_start;
+        char *start = strchr(esp_buffer, '"');
+        if (start) {
+            start++;
+            char *end = strchr(start, '"');
+            if (end) {
+                int len = end - start;
                 if (len > 31) len = 31;
-                memset(g_wifi_ssid, 0, 32);
-                strncpy(g_wifi_ssid, p_start, len);
+                memset(wifi_ssid, 0, 32);
+                strncpy(wifi_ssid, start, len);
             }
         }
     }
@@ -62,7 +62,7 @@ void CONNECT_WIFI()
     send_AT_Cmd("AT+CWJAP=\"Redmi K70\",\"200212137\"", "WIFI GOT IP", 10000);
     printf("等待 WiFi 自动连接...\r\n");
 
-    bool is_connected = false;
+    bool connected = false;
     for(int i = 0; i < 10; i++) 
     {
         // 这里的延时用于给路由器分配 IP 的时间
@@ -72,13 +72,13 @@ void CONNECT_WIFI()
         if(send_AT_Cmd("AT+CIFSR", "STAIP", 1000)) 
         {
             // 【关键修改】检查是否是无效 IP (0.0.0.0)
-            if(strstr(esp_rx_buffer, "0.0.0.0") != NULL) {
+            if(strstr(esp_buffer, "0.0.0.0") != NULL) {
                 printf("正在获取 IP (当前 0.0.0.0) - %d/10\r\n", i+1);
                 continue; // 跳过本次循环，继续等待
             }
 
             // 获取到了有效 IP
-            is_connected = true;
+            connected = true;
             printf("检测到有效 IP，WiFi 连接成功！\r\n");
             
             // 同步当前连接的 SSID 到全局变量，以便 UI 显示
@@ -106,7 +106,7 @@ void MQTT_init(void) {
 
     printf("等待 WiFi 自动连接...\r\n");
 
-    bool is_connected = false;
+    bool connected = false;
     for(int i = 0; i < 10; i++) 
     {
         // 这里的延时用于给路由器分配 IP 的时间
@@ -116,16 +116,16 @@ void MQTT_init(void) {
         if(send_AT_Cmd("AT+CIFSR", "STAIP", 1000)) 
         {
             // 【关键修改】检查是否是无效 IP (0.0.0.0)
-            if(strstr(esp_rx_buffer, "0.0.0.0") != NULL) {
+            if(strstr(esp_buffer, "0.0.0.0") != NULL) {
                 printf("正在获取 IP (当前 0.0.0.0) - %d/10\r\n", i+1);
                 continue; // 跳过本次循环，继续等待
             }
 
             // 获取到了有效 IP
-            is_connected = true;
+            connected = true;
             printf("检测到有效 IP，WiFi 连接成功！\r\n");
             
-            // 同步当前连接的 SSID 到全局变量，以便 UI 显示
+            // 同步当前连接的 SSID 到全局变量
             parse_current_ssid();
             
             break; // 跳出循环，进行下一步
@@ -137,7 +137,7 @@ void MQTT_init(void) {
     }
     
     // 3. 根据连接结果进行后续操作
-    if (is_connected) 
+    if (connected) 
     {
         printf("开始连接 MQTT...\r\n");
         
@@ -170,17 +170,17 @@ void MQTT_Rx_Handler(uint16_t Size)
 {
     // 确保字符串以 0 结尾，方便 strstr 函数查找
     if (Size < RX_BUF_SIZE) {
-        esp_rx_buffer[Size] = '\0'; 
+        esp_buffer[Size] = '\0'; 
     } else {
-        esp_rx_buffer[RX_BUF_SIZE - 1] = '\0';
+        esp_buffer[RX_BUF_SIZE - 1] = '\0';
     }
 
-    if (strstr(esp_rx_buffer, "+MQTTSUBRECV") != NULL) {
-        printf("MQTT RX: %s\r\n", esp_rx_buffer);
+    if (strstr(esp_buffer, "+MQTTSUBRECV") != NULL) {
+        printf("MQTT RX: %s\r\n", esp_buffer);
     }
 
     // 重新开启接收，指向缓冲区头部（依然是覆盖模式，但配合上面的轮询函数已经够用了）
-    HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_rx_buffer, RX_BUF_SIZE);
+    HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_buffer, RX_BUF_SIZE);
 }
 
 /**

@@ -31,6 +31,7 @@
 #include "lv_port_indev.h" // LVGL的触屏支持
 #include "stream_buffer.h"
 #include "OTA.h"
+#include "lvgls.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -115,9 +116,9 @@ void MX_FREERTOS_Init(void) {
 	}
 	ret = xTaskCreate(F1_LogTask,
 										"F1Log",
-										1024,           // 栈：先用 1KB，若打印多再加
+										1024,           
 										NULL,
-										osPriorityBelowNormal,  // 比 lvgl(osPriorityLow) 高
+										osPriorityBelowNormal,  
 										&f1loghandle);
 
 	if (ret == pdPASS)
@@ -143,31 +144,17 @@ void modbus_parse_task(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
 	modbus_pack_t pack;
-	uint8_t dev;
-	uint8_t func;
+	// uint8_t dev;
+	// uint8_t func;
 	int ret;
-  OTA_init();
+//  OTA_init();
   /* Infinite loop */
   for(;;)
   {
-#if 1
-		if (xQueueReceive(queuehandle , &pack, 100))
+		if (xQueueReceive(queuehandle , &pack, pdMS_TO_TICKS(100)) == pdTRUE)
 		{
 				peripheral_ctrl(&pack);
 		}
-
-#elif 0
-		HAL_Delay(1000);
-		ILI9341_Clear(RED);
-		HAL_Delay(1000);
-		ILI9341_Clear(GREEN);
-		HAL_Delay(1000);
-		ILI9341_Clear(BLUE);
-
-#else
-		publish_message("hello world");
-		HAL_Delay(3000);
-#endif
   }
 
   /* USER CODE END defaultTask */
@@ -175,7 +162,7 @@ void modbus_parse_task(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-extern void setup_peripheral_control_ui();
+
 void lvgl(void const *argument)
 {
 #if LVGL

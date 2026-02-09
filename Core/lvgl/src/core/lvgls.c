@@ -291,8 +291,8 @@ void setup_finger_screen(void) {
     // 绑定事件：跳转回主屏幕 (此时 ui_main_screen 在 setup_peripheral_control_ui 开头已赋值)
     lv_obj_add_event_cb(btn_back, screen_switch_event_cb, LV_EVENT_CLICKED, ui_main_screen);
 		
-	setup_finger_delete_screen();
-	lv_obj_add_event_cb(btn_delete, screen_switch_event_cb, LV_EVENT_CLICKED, ui_finger_del_screen);
+		setup_finger_delete_screen();
+		lv_obj_add_event_cb(btn_delete, screen_switch_event_cb, LV_EVENT_CLICKED, ui_finger_del_screen);
 
 }
 
@@ -338,7 +338,7 @@ void setup_peripheral_control_ui(void) {
     lv_label_set_text(label_set, "WiFi Settings"); // 按钮文字
     lv_obj_align(label_set, LV_ALIGN_CENTER, 0, 0);
 
-	lv_obj_add_event_cb(btn_set, wifi_setting_btn_cb, LV_EVENT_CLICKED, NULL);
+		lv_obj_add_event_cb(btn_set, wifi_setting_btn_cb, LV_EVENT_CLICKED, NULL);
 		
     // --- 指纹界面 ---
     lv_obj_t * btn_finger_menu = lv_btn_create(ui_main_screen);

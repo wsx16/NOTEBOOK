@@ -243,4 +243,4 @@ stm32u5/app_freertos.o: ..\Core\Src\app_freertos.c \
   ..\Core\lvgl\examples\porting\lv_port_disp.h \
   ..\Core\lvgl\examples\porting\lv_port_indev.h \
   ..\Middlewares\Third_Party\FreeRTOS\Source\include\stream_buffer.h \
-  ..\Core\OTA\OTA.h ..\Core\OTA\version.h
+  ..\Core\OTA\OTA.h ..\Core\OTA\version.h ..\Core\lvgl\src\core\lvgls.h

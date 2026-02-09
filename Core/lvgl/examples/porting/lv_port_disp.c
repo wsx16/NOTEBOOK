@@ -188,18 +188,17 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 {
     if(disp_flush_enabled) {
         
-        // 1. 设置绘图窗口 (直接复用你驱动里写好的 SetArea)
-        // 注意：你的 ILI9341_SetArea 参数顺序是 x0, y0, x1, y1
+        // 1. 设置绘图窗口 
         ILI9341_SetArea(area->x1, area->y1, area->x2, area->y2);
 
-        // 2. 计算这次要刷新的总像素点数
+        // 2. 计算刷新的总像素点数
         uint32_t size = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
         
-        // 3. 呼叫刚才写好的批量发送函数
+        // 3. 呼叫发送函数
         ILI9341_WriteBuffer((uint16_t*)color_p, size);
     }
 
-    // 4. 重要：通知 LVGL 刷新结束
+    // 4. 通知 LVGL 刷新结束
     lv_disp_flush_ready(disp_drv);
 }
 /*OPTIONAL: GPU INTERFACE*/
