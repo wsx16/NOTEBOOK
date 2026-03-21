@@ -1,4 +1,5 @@
 import sys
+import queue as _queue
 import cv2
 import numpy as np
 from PyQt5.QtWidgets import (
@@ -7,8 +8,8 @@ from PyQt5.QtWidgets import (
     QInputDialog, QTabWidget, QTextEdit, QDialog, QListWidget, QListWidgetItem,
     QLineEdit, QComboBox, QHeaderView, QAbstractItemView,
 )
-from PyQt5.QtCore import Qt, QFileSystemWatcher, QThread, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import Qt, QFileSystemWatcher, QThread, QTimer, pyqtSignal
+from PyQt5.QtGui import QImage, QPixmap, QTextCursor
 from ultralytics import YOLO
 import hyperlpr3 as lpr3
 from PIL import Image, ImageDraw, ImageFont
@@ -19,6 +20,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 import os
+import time
 import warnings
 from db import (
     init_db,
@@ -28,6 +30,13 @@ from db import (
 )
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# 同一车牌在同一会话内，5 分钟冷却后允许再次记录（防止长时间运行丢数据）
+_PLATE_COOLDOWN_SEC  = 300
+# 过车记录表格最多显示行数（超出时滚动丢弃最旧行，内存列表仍完整保留）
+_PLATE_TABLE_MAX_ROWS = 200
+# 推理帧队列容量（小队列保证推理始终消费最新帧，防止堆积卡顿）
+_INFER_QUEUE_SIZE = 2
 
 # ── 常量 ──────────────────────────────────────────────────────────────────────
 RUSH_EVENT_DIR    = "rush_events"
@@ -103,6 +112,20 @@ def save_config(config: dict) -> None:
         json.dump(config, f, indent=4, ensure_ascii=False)
 
 
+def validate_assets(config: dict) -> None:
+    """启动时检查必需文件是否存在，缺失则弹框提示并退出。"""
+    required = {
+        "YOLO 模型":    config.get("model_path", "best.pt"),
+        "字体文件":     config.get("font_path",  "simhei.ttf"),
+        "报警音":       config.get("alert_sound", "alert.wav"),
+    }
+    missing = [f"{name}: {path}" for name, path in required.items() if not os.path.exists(path)]
+    if missing:
+        msg = "以下必需文件缺失，程序无法启动：\n\n" + "\n".join(missing)
+        QMessageBox.critical(None, "文件缺失", msg)
+        sys.exit(1)
+
+
 # ── 图像工具 ──────────────────────────────────────────────────────────────────
 def draw_chinese_text_pil(
     image: np.ndarray,
@@ -118,86 +141,137 @@ def draw_chinese_text_pil(
     return cv2.cvtColor(np.array(image_pil), cv2.COLOR_RGB2BGR)
 
 
-# ── 视频推理线程 ───────────────────────────────────────────────────────────────
-class VideoWorker(QThread):
-    """在后台线程中完成逐帧读取、YOLO 推理、LPR 识别，通过信号回传结果。"""
-
-    # (annotated_frame_bgr, rod_state_or_None)
-    frame_ready    = pyqtSignal(object, object)
-    plate_detected = pyqtSignal(str)
+# ── 读帧线程（以视频帧率读帧并推送至显示和推理两路消费者）──────────────────────
+class FrameReaderThread(QThread):
+    frame_ready    = pyqtSignal(object)   # raw BGR ndarray，供主线程显示
     video_finished = pyqtSignal()
 
-    def __init__(
-        self,
-        cap: cv2.VideoCapture,
-        yolo_model: YOLO,
-        plate_catcher: lpr3.LicensePlateCatcher,
-        config: dict,
-    ):
+    # 显示用的最大分辨率；缩小后主线程渲染负担大幅降低
+    _DISPLAY_MAX_W = 1280
+    _DISPLAY_MAX_H = 720
+
+    def __init__(self, cap: cv2.VideoCapture, infer_queue: "_queue.Queue"):
         super().__init__()
-        self.cap           = cap
-        self.yolo_model    = yolo_model
-        self.plate_catcher = plate_catcher
-        self.config        = config
-        self._paused       = False
-        self._running      = True
+        self.cap          = cap
+        self.infer_queue  = infer_queue
+        self._running     = True
+        self._paused      = False
         fps = cap.get(cv2.CAP_PROP_FPS)
-        self._interval_ms  = max(1, int(1000 / fps)) if fps > 0 else 40
+        self._interval_ms = max(1, int(1000 / fps)) if fps > 0 else 33
+        # 预计算显示缩放比（只在源分辨率大于目标时缩小）
+        src_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        src_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        scale = min(self._DISPLAY_MAX_W / max(src_w, 1),
+                    self._DISPLAY_MAX_H / max(src_h, 1))
+        if scale < 1.0:
+            self._disp_w = int(src_w * scale)
+            self._disp_h = int(src_h * scale)
+        else:
+            self._disp_w = src_w
+            self._disp_h = src_h
 
     def run(self) -> None:
-        frame_count = 0
-        while self._running:
-            if self._paused:
-                self.msleep(30)
-                continue
+        try:
+            while self._running:
+                if self._paused:
+                    self.msleep(30)
+                    continue
+                ret, frame = self.cap.read()
+                if not ret:
+                    self.video_finished.emit()
+                    break
 
-            ret, frame = self.cap.read()
-            if not ret:
-                self.video_finished.emit()
-                break
+                # 推理队列投递原始分辨率帧（保证 LPR 识别精度）
+                if self.infer_queue.full():
+                    try:
+                        self.infer_queue.get_nowait()
+                    except _queue.Empty:
+                        pass
+                try:
+                    self.infer_queue.put_nowait(frame)   # 不复制，推理线程只读
+                except _queue.Full:
+                    pass
 
-            rod_state = None
-
-            # 每 10 帧检测车杆状态
-            if frame_count % 10 == 0:
-                results = self.yolo_model(frame, verbose=False)[0]
-                boxes = results.boxes.xyxy.tolist()
-                if boxes:
-                    cls = int(results.boxes.cls.tolist()[0])
-                    rod_state = "抬起" if cls == 0 else "关闭" if cls == 1 else "车杆损坏"
-                else:
-                    rod_state = "未检测到车杆"
-
-            # 每 7 帧识别车牌
-            if frame_count % 7 == 0:
-                threshold = self.config.get("confidence_threshold", 0.975)
-                font_path = self.config.get("font_path", "simhei.ttf")
-                lpr_results = self.plate_catcher(frame)
-                for plate_info in sorted(lpr_results, key=lambda x: x[1], reverse=True):
-                    plate_no   = plate_info[0].upper().strip()
-                    plate_conf = plate_info[1]
-                    if plate_conf < threshold:
-                        continue
-                    x1, y1, x2, y2 = map(int, plate_info[3])
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                    frame = draw_chinese_text_pil(
-                        frame, plate_no,
-                        (x1, max(0, y1 - 30)),
-                        font_path, color=(0, 0, 255),
-                    )
-                    self.plate_detected.emit(plate_no)
-                    break  # 只取置信度最高的一个
-
-            self.frame_ready.emit(frame.copy(), rod_state)
-            frame_count += 1
-            self.msleep(self._interval_ms)
+                # 显示帧在后台线程缩小，大幅减轻主线程渲染压力
+                disp = cv2.resize(frame, (self._disp_w, self._disp_h),
+                                  interpolation=cv2.INTER_LINEAR)
+                self.frame_ready.emit(disp)
+                self.msleep(self._interval_ms)
+        except Exception as e:
+            logger.error(f"读帧线程崩溃: {e}")
+            self.video_finished.emit()
 
     def pause(self)  -> None: self._paused = True
     def resume(self) -> None: self._paused = False
 
     def stop(self) -> None:
         self._running = False
+        self.wait(3000)
         self.cap.release()
+
+
+# ── 推理线程（YOLO + LPR，独立运行，不阻塞帧显示）────────────────────────────
+class InferenceThread(QThread):
+    rod_state_ready = pyqtSignal(str)   # YOLO 检测结果
+    plate_detected  = pyqtSignal(str)   # 车牌号
+
+    def __init__(
+        self,
+        infer_queue: "_queue.Queue",
+        yolo_model: YOLO,
+        plate_catcher: lpr3.LicensePlateCatcher,
+        config: dict,
+    ):
+        super().__init__()
+        self.infer_queue   = infer_queue
+        self.yolo_model    = yolo_model
+        self.plate_catcher = plate_catcher
+        self.config        = config
+        self._running      = True
+        self._fc           = 0   # 推理帧计数
+
+    def run(self) -> None:
+        try:
+            while self._running:
+                try:
+                    frame = self.infer_queue.get(timeout=0.15)
+                except _queue.Empty:
+                    continue
+
+                fc = self._fc
+                self._fc += 1
+
+                # YOLO 每帧都跑（GPU 上耗时极短，状态需要实时）
+                try:
+                    results = self.yolo_model(frame, verbose=False)[0]
+                    boxes   = results.boxes.xyxy.tolist()
+                    if boxes:
+                        cls   = int(results.boxes.cls.tolist()[0])
+                        state = "抬起" if cls == 0 else "关闭" if cls == 1 else "车杆损坏"
+                    else:
+                        state = "未检测到车杆"
+                    self.rod_state_ready.emit(state)
+                except Exception as e:
+                    logger.error(f"YOLO 推理异常（跳过本帧）: {e}")
+
+                # LPR 每 3 推理帧跑一次（CPU，适当降频）
+                if fc % 3 == 0:
+                    try:
+                        threshold   = self.config.get("confidence_threshold", 0.85)
+                        lpr_results = self.plate_catcher(frame)
+                        for p in sorted(lpr_results, key=lambda x: x[1], reverse=True):
+                            plate_no, conf = p[0].upper().strip(), p[1]
+                            if conf < threshold:
+                                continue
+                            self.plate_detected.emit(plate_no)
+                            break   # 只取置信度最高的一个
+                    except Exception as e:
+                        logger.error(f"车牌识别异常（跳过本帧）: {e}")
+        except Exception as e:
+            logger.error(f"推理线程崩溃: {e}")
+
+    def stop(self) -> None:
+        self._running = False
         self.wait(3000)
 
 
@@ -206,6 +280,7 @@ class DataStatsTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.rush_event_data: list = []
+        self._log_file_pos: int    = 0    # 已读到的日志文件字节偏移，用于增量追加
         self.file_watcher = QFileSystemWatcher()
         self.file_watcher.fileChanged.connect(self._on_file_changed)
         self._init_ui()
@@ -307,17 +382,44 @@ class DataStatsTab(QWidget):
         self._load_plate_table(self.plate_search.text().strip())
 
     def _load_log(self) -> None:
-        if os.path.exists(LOG_PATH):
-            try:
-                with open(LOG_PATH, "r", encoding="utf-8") as f:
-                    self.log_edit.setPlainText(f.read())
+        """全量加载日志（初始化 / 刷新按钮）。"""
+        if not os.path.exists(LOG_PATH):
+            self.log_edit.setPlainText("日志文件不存在")
+            self._log_file_pos = 0
+            return
+        try:
+            with open(LOG_PATH, "r", encoding="utf-8") as f:
+                content = f.read()
+                self._log_file_pos = f.tell()
+            self.log_edit.setPlainText(content)
+            self.log_edit.verticalScrollBar().setValue(
+                self.log_edit.verticalScrollBar().maximum()
+            )
+        except Exception as e:
+            self.log_edit.setPlainText(f"读取日志失败: {e}")
+
+    def _append_log(self) -> None:
+        """增量追加新日志内容（文件监听触发，避免全量重读）。"""
+        if not os.path.exists(LOG_PATH):
+            return
+        try:
+            # 文件被轮转时大小会小于已记录偏移，退回全量加载
+            if os.path.getsize(LOG_PATH) < self._log_file_pos:
+                self._load_log()
+                return
+            with open(LOG_PATH, "r", encoding="utf-8") as f:
+                f.seek(self._log_file_pos)
+                new_content = f.read()
+                self._log_file_pos = f.tell()
+            if new_content:
+                cursor = self.log_edit.textCursor()
+                cursor.movePosition(QTextCursor.End)
+                cursor.insertText(new_content)
                 self.log_edit.verticalScrollBar().setValue(
                     self.log_edit.verticalScrollBar().maximum()
                 )
-            except Exception as e:
-                self.log_edit.setPlainText(f"读取日志失败: {e}")
-        else:
-            self.log_edit.setPlainText("日志文件不存在")
+        except Exception as e:
+            logger.error(f"增量读取日志失败: {e}")
 
     def _load_config_file(self) -> None:
         try:
@@ -422,7 +524,7 @@ class DataStatsTab(QWidget):
 
     def _on_file_changed(self, path: str) -> None:
         if path == LOG_PATH:
-            self._load_log()
+            self._append_log()   # 增量追加，不全量重读
         elif path == CONFIG_PATH:
             self._load_config_file()
         elif path == RUSH_EVENT_RECORD:
@@ -447,15 +549,42 @@ class MainWindow(QMainWindow):
         os.makedirs(RUSH_EVENT_DIR, exist_ok=True)
         init_db()
 
-        self.config        = load_config()
-        self.yolo_model    = YOLO(self.config["model_path"]).to("cuda")
-        self.plate_catcher = lpr3.LicensePlateCatcher()
-        pygame.mixer.init()
+        self.config = load_config()
+        validate_assets(self.config)   # 缺文件立即弹框退出，不让程序带病运行
+        self._audio_ok = True
+
+        # ── YOLO 模型加载（GPU 不可用时自动回退 CPU）──────────────────────────
+        try:
+            self.yolo_model = YOLO(self.config["model_path"]).to("cuda")
+            logger.info("YOLO 模型已加载（CUDA）")
+        except Exception as e:
+            logger.warning(f"CUDA 不可用，尝试 CPU: {e}")
+            try:
+                self.yolo_model = YOLO(self.config["model_path"])
+                logger.info("YOLO 模型已加载（CPU）")
+            except Exception as e2:
+                QMessageBox.critical(None, "启动失败", f"无法加载 YOLO 模型:\n{e2}")
+                sys.exit(1)
+
+        # ── 车牌识别器 ────────────────────────────────────────────────────────
+        try:
+            self.plate_catcher = lpr3.LicensePlateCatcher()
+        except Exception as e:
+            QMessageBox.critical(None, "启动失败", f"无法初始化车牌识别器:\n{e}")
+            sys.exit(1)
+
+        # ── 音频（设备不存在时静默禁用，不崩溃）─────────────────────────────
+        try:
+            pygame.mixer.init()
+        except Exception as e:
+            logger.warning(f"音频初始化失败，报警音已禁用: {e}")
+            self._audio_ok = False
 
         # ── 检测状态变量 ──────────────────────────────────────────────────────
         self.current_video_path         = ""
         self.passed_plates: list        = []      # [(timestamp, plate_no), ...]
-        self._passed_plate_set: set     = set()   # O(1) 查重
+        self._passed_plate_times: dict  = {}      # plate_no -> last_seen float，冷却去重
+        self._plate_table_offset: int   = 0       # 表格已移除的头部行数（用于修改车牌时还原真实索引）
         self.vehicle_count              = 0
         self.previous_plate             = None
         self.current_plate              = ""
@@ -468,7 +597,14 @@ class MainWindow(QMainWindow):
         self.barrier_crash_recorded     = False   # 撞杆冲岗已记录
         self.tailgate_recorded          = False   # 跟车冲岗已记录
 
-        self.worker: VideoWorker        = None
+        self.reader: FrameReaderThread  = None
+        self.infer:  InferenceThread    = None
+        self._infer_queue: _queue.Queue = None
+
+        # 报警自动清除定时器（3 秒后清除警告文字并停止报警音）
+        self._warn_timer = QTimer(self)
+        self._warn_timer.setSingleShot(True)
+        self._warn_timer.timeout.connect(self._clear_warning)
 
         self._build_ui()
 
@@ -612,21 +748,30 @@ class MainWindow(QMainWindow):
             return
         self.current_video_path = source_name
         logger.info(f"视频源: {os.path.basename(source_name)}")
-        self.worker = VideoWorker(cap, self.yolo_model, self.plate_catcher, self.config)
-        self.worker.frame_ready.connect(self._on_frame_ready)
-        self.worker.plate_detected.connect(self._on_plate_detected)
-        self.worker.video_finished.connect(self._on_video_finished)
-        self.worker.start()
+        self._infer_queue = _queue.Queue(maxsize=_INFER_QUEUE_SIZE)
+        self.reader = FrameReaderThread(cap, self._infer_queue)
+        self.infer  = InferenceThread(self._infer_queue, self.yolo_model, self.plate_catcher, self.config)
+        self.reader.frame_ready.connect(self._on_frame_ready)
+        self.reader.video_finished.connect(self._on_video_finished)
+        self.infer.rod_state_ready.connect(self._on_rod_state)
+        self.infer.plate_detected.connect(self._on_plate_detected)
+        self.infer.start()
+        self.reader.start()
         self.btn_pause.setEnabled(True)
         self.btn_pause.setText("⏸ 暂停")
 
     def _reset_state(self) -> None:
-        if self.worker is not None:
-            self.worker.stop()
-            self.worker = None
+        if self.reader is not None:
+            self.reader.stop()   # 先停读帧（断绝推理队列来源）
+            self.reader = None
+        if self.infer is not None:
+            self.infer.stop()    # 再停推理（等待当前帧处理完毕）
+            self.infer = None
+        self._infer_queue = None
 
         self.passed_plates            = []
-        self._passed_plate_set        = set()
+        self._passed_plate_times      = {}
+        self._plate_table_offset      = 0
         self.vehicle_count            = 0
         self.previous_plate           = None
         self.current_plate            = ""
@@ -641,49 +786,51 @@ class MainWindow(QMainWindow):
         self.rush_table.setRowCount(0)
         self.status_label.setText("车杆状态：未检测到车杆")
         self.count_label.setText("通过车辆数目：0")
+        self._warn_timer.stop()
         self.warning_label.clear()
         self.btn_pause.setEnabled(False)
 
     def toggle_pause(self) -> None:
-        if self.worker is None:
+        if self.reader is None:
             return
-        if self.worker._paused:
-            self.worker.resume()
+        if self.reader._paused:
+            self.reader.resume()
             self.btn_pause.setText("⏸ 暂停")
         else:
-            self.worker.pause()
+            self.reader.pause()
             self.btn_pause.setText("▶️ 继续")
 
-    # ── Worker 信号槽（主线程执行）────────────────────────────────────────────
-    def _on_frame_ready(self, frame: np.ndarray, rod_state) -> None:
-        # 保存最新帧（用于截图，不再从 cap 额外读帧）
+    # ── 信号槽（主线程执行）──────────────────────────────────────────────────
+    def _on_frame_ready(self, frame: np.ndarray) -> None:
+        """读帧线程信号：仅负责将帧渲染到 UI，不做任何推理。"""
         self.latest_frame = frame
-
-        # 更新车杆状态
-        if rod_state is not None:
-            self.status_label.setText(f"车杆状态：{rod_state}")
-            if rod_state != self.previous_rod_state:
-                self._handle_rod_state_change(rod_state)
-            self._handle_rod_state_no_change(rod_state)
-            self.previous_rod_state = rod_state
-
-        # 渲染到 UI（平滑缩放）
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb.shape
+        # QPixmap.fromImage 内部会复制数据，无需额外 .copy()；FastTransformation 速度约 10x
         q_img  = QImage(rgb.data, w, h, ch * w, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_img).scaled(
-            self.video_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            self.video_label.size(), Qt.KeepAspectRatio, Qt.FastTransformation
         )
         self.video_label.setPixmap(pixmap)
+
+    def _on_rod_state(self, rod_state: str) -> None:
+        """推理线程信号：处理车杆状态变化和冲岗逻辑。"""
+        self.status_label.setText(f"车杆状态：{rod_state}")
+        if rod_state != self.previous_rod_state:
+            self._handle_rod_state_change(rod_state)
+        self._handle_rod_state_no_change(rod_state)
+        self.previous_rod_state = rod_state
 
     def _on_plate_detected(self, plate_no: str) -> None:
         if not plate_no:
             return
-        # O(1) 精确查重（已在本次视频中出现过的车牌直接跳过）
-        if plate_no in self._passed_plate_set:
+
+        # 时间冷却去重：同一车牌在 _PLATE_COOLDOWN_SEC 内不重复记录
+        now = time.time()
+        if now - self._passed_plate_times.get(plate_no, 0) < _PLATE_COOLDOWN_SEC:
             return
 
-        # 修复 Levenshtein 去抖顺序：先判断是否与上一辆相似，再决定是否追加
+        # Levenshtein 去抖：与上一辆高度相似则认为是同一张车牌的 OCR 抖动，丢弃
         if self.previous_plate and 0 < Levenshtein.distance(plate_no, self.previous_plate) < 3:
             logger.debug(f"去抖丢弃: {plate_no}（上一辆: {self.previous_plate}）")
             return
@@ -691,7 +838,7 @@ class MainWindow(QMainWindow):
         # 确认为新车辆
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.passed_plates.append((timestamp, plate_no))
-        self._passed_plate_set.add(plate_no)
+        self._passed_plate_times[plate_no] = now
         self.vehicle_count += 1
         self.previous_plate = plate_no
         self.current_plate  = plate_no
@@ -703,7 +850,10 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.error(f"车牌实时写库失败: {e}")
 
-        # 更新过车表格
+        # 更新过车表格（超过上限时移除最旧一行，并记录偏移量用于车牌修改）
+        if self.plate_table.rowCount() >= _PLATE_TABLE_MAX_ROWS:
+            self.plate_table.removeRow(0)
+            self._plate_table_offset += 1
         row = self.plate_table.rowCount()
         self.plate_table.insertRow(row)
         self.plate_table.setItem(row, 0, QTableWidgetItem(str(self.vehicle_count)))
@@ -723,36 +873,41 @@ class MainWindow(QMainWindow):
     def _handle_rod_state_change(self, state: str) -> None:
         """仅在状态发生变化时调用。"""
         if state == "抬起":
-            self.current_up_plates      = []
-            self.tailgate_recorded      = False   # 新开闸周期重置
-            self.barrier_crash_recorded = False
-            self.warning_label.clear()
-            logger.info("车杆抬起")
+            # 新一轮开始：清空本轮车牌列表，重置跟车标志
+            self.current_up_plates = []
+            self.tailgate_recorded = False
+            logger.info("车杆抬起，开始本轮冲岗检测")
         elif state == "关闭":
+            # 本轮通行结束：重置全部状态，准备下一轮
+            self.current_up_plates      = []
+            self.tailgate_recorded      = False
             self.barrier_crash_recorded = False
-            logger.info("车杆关闭")
-        elif state == "未检测到车杆":
-            self.barrier_crash_recorded = False
+            self._warn_timer.stop()
+            self.warning_label.clear()
+            if self._audio_ok:
+                try:
+                    pygame.mixer.music.stop()
+                except Exception:
+                    pass
+            logger.info("车杆关闭，已重置冲岗判断状态")
+        elif state in ("车杆损坏", "未检测到车杆"):
+            # YOLO 检测到车杆损坏，或车杆从视野中消失 → 均为撞杆冲岗
+            if self.current_plate and not self.barrier_crash_recorded:
+                self._show_warning(f"警告：撞杆冲岗\n可疑车牌：{self.current_plate}")
+                self._play_alert()
+                self._record_rush_event(
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    self.current_plate,
+                    "撞杆冲岗",
+                )
+                logger.warning(f"撞杆冲岗，可疑车牌: {self.current_plate}")
+                self.barrier_crash_recorded = True
 
     def _handle_rod_state_no_change(self, state: str) -> None:
         """每次 YOLO 检测完毕都调用（含状态变化的那一帧）。"""
-        if state == "车杆损坏":
-            if self.current_plate and len(self.passed_plates) > 0:
-                if not self.barrier_crash_recorded:
-                    self.warning_label.setText(
-                        f"警告：撞杆冲岗\n可疑车牌：{self.current_plate}"
-                    )
-                    self._play_alert()
-                    self._record_rush_event(
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        self.current_plate,
-                        "撞杆冲岗",
-                    )
-                    logger.warning(f"撞杆冲岗，可疑车牌: {self.current_plate}")
-                    self.barrier_crash_recorded = True
-        elif state in ("抬起", "关闭"):
-            if not self._check_for_rush():
-                self.warning_label.clear()
+        # 只在车杆抬起期间做跟车冲岗检测
+        if state == "抬起":
+            self._check_for_rush()
 
     def _check_for_rush(self) -> bool:
         """检测跟车冲岗：本次开闸内出现超过 1 辆车。"""
@@ -761,11 +916,9 @@ class MainWindow(QMainWindow):
         if self.current_plate not in self.current_up_plates:
             self.current_up_plates.append(self.current_plate)
         if len(self.current_up_plates) > 1 and self.vehicle_count > 1:
-            self.warning_label.setText(
-                f"警告：跟车冲岗\n可疑车牌：{self.current_plate}"
-            )
-            self._play_alert()
             if not self.tailgate_recorded:
+                self._show_warning(f"警告：跟车冲岗\n可疑车牌：{self.current_plate}")
+                self._play_alert()
                 self._record_rush_event(
                     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     self.current_plate,
@@ -781,7 +934,8 @@ class MainWindow(QMainWindow):
         image_path = ""
         # 使用已保存的最新帧，不再从 cap 额外读一帧
         if self.latest_frame is not None:
-            filename   = f"{timestamp.replace(':', '-')}_{plate_no}.jpg"
+            safe_plate = "".join(c for c in plate_no if c.isalnum() or c in "-_")
+            filename   = f"{timestamp.replace(':', '-')}_{safe_plate}.jpg"
             image_path = os.path.join(RUSH_EVENT_DIR, filename)
             cv2.imwrite(image_path, self.latest_frame)
 
@@ -801,8 +955,8 @@ class MainWindow(QMainWindow):
             try:
                 with open(RUSH_EVENT_RECORD, "r", encoding="utf-8") as f:
                     events = json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"冲岗 JSON 读取失败，将覆盖写入: {e}")
         events.append(event)
         try:
             with open(RUSH_EVENT_RECORD, "w", encoding="utf-8") as f:
@@ -844,16 +998,17 @@ class MainWindow(QMainWindow):
         # 更新 UI 表格
         self.plate_table.setItem(row, 2, QTableWidgetItem(new_plate))
 
-        # 更新内存过车列表
-        if 0 <= row < len(self.passed_plates):
-            ts = self.passed_plates[row][0]
-            self.passed_plates[row] = (ts, new_plate)
-            self._passed_plate_set.discard(old_plate)
-            self._passed_plate_set.add(new_plate)
+        # 更新内存过车列表（row 是表格可见行号，需加偏移量还原在 passed_plates 中的真实下标）
+        actual_idx = row + self._plate_table_offset
+        if 0 <= actual_idx < len(self.passed_plates):
+            ts = self.passed_plates[actual_idx][0]
+            self.passed_plates[actual_idx] = (ts, new_plate)
+            t = self._passed_plate_times.pop(old_plate, time.time())
+            self._passed_plate_times[new_plate] = t
             if self.current_plate  == old_plate: self.current_plate  = new_plate
             if self.previous_plate == old_plate: self.previous_plate = new_plate
 
-            # 更新数据库（修复：原来只改内存，数据库始终是旧值）
+            # 更新数据库
             try:
                 n1 = update_plate_record(old_plate, new_plate, ts, self.current_video_path)
                 n2 = update_rush_plate(old_plate, new_plate)
@@ -889,7 +1044,23 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.error(f"保存车牌文件失败: {e}")
 
+    def _show_warning(self, text: str) -> None:
+        """显示报警文字并启动 3 秒自动清除定时器。"""
+        self.warning_label.setText(text)
+        self._warn_timer.start(3000)
+
+    def _clear_warning(self) -> None:
+        """定时器到期：清除报警文字，停止报警音。"""
+        self.warning_label.clear()
+        if self._audio_ok:
+            try:
+                pygame.mixer.music.stop()
+            except Exception:
+                pass
+
     def _play_alert(self) -> None:
+        if not self._audio_ok:
+            return
         try:
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load(self.config["alert_sound"])
@@ -898,8 +1069,10 @@ class MainWindow(QMainWindow):
             logger.error(f"播放报警音失败: {e}")
 
     def closeEvent(self, event) -> None:
-        if self.worker is not None:
-            self.worker.stop()
+        if self.reader is not None:
+            self.reader.stop()
+        if self.infer is not None:
+            self.infer.stop()
         pygame.mixer.music.stop()
         event.accept()
 

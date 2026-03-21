@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+
+# Runtime data
+system.log
+system.log.*
+*.db
+plate_records.txt
+
+# Rush event data (screenshots + JSON records)
+rush_events/*.jpg
+rush_events/rush_records.json
+
+# Video files
+video/*.mp4
+video/*.avi
+video/*.mov
+video/.accelerate/
+
+# Large binary assets
+simhei.ttf
+*.wav
+
+# Model / large assets (optional, uncomment if not tracking in git)
+# best.pt

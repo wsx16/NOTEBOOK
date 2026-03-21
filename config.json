@@ -1,6 +1,6 @@
 {
     "model_path": "best.pt",
     "font_path": "simhei.ttf",
-    "confidence_threshold": 0.975,
+    "confidence_threshold": 0.85,
     "alert_sound": "alert.wav"
 }
