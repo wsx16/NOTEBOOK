@@ -124,5 +124,40 @@
     "message": "警告：检测到跟车冲岗！\n可疑车牌：鄂ADZ5756",
     "warning_type": "跟车冲岗",
     "image_path": "rush_events\\2025-04-29 23-21-19_鄂ADZ5756.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 16:06:46",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗 \n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 16-06-46_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 16:29:34",
+    "plate": "AAK7308",
+    "message": "警告：检测到跟车冲岗！\n可疑车牌：AAK7308",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 16-29-34_AAK7308.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 16:36:37",
+    "plate": "ADB9515",
+    "message": "警告：检测到跟车冲岗！\n可疑车牌：ADB9515",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 16-36-37_ADB9515.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 17:00:07",
+    "plate": "鄂ADB7379",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂ADB7379",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 17-00-07_鄂ADB7379.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 17:53:15",
+    "plate": "ADC5213",
+    "message": "警告：跟车冲岗\n可疑车牌：ADC5213",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 17-53-15_ADC5213.jpg"
   }
 ]
