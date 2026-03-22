@@ -45,29 +45,4 @@
 
 
 
-## 🛠️ 技术栈
-
-- **框架**：PyTorch、Hugging Face Transformers
-- **工具**：vLLM、Ollama、LangChain、LlamaIndex
-- **平台**：OpenAI API、Claude API、本地模型部署
-- **数据库**：Chroma、Pinecone、Weaviate向量数据库
-
-## 📈 实践项目
-
-- [ ] 基于LoRA的模型微调项目
-- [ ] GPTQ模型量化部署
-- [ ] RAG问答系统开发
-- [ ] MCP工具服务器实现
-- [ ] 多Agent协作系统
-
-## 💡 学习方法
-
-1. **理论实践结合**：先理解原理，再动手实现
-2. **项目驱动学习**：通过具体项目掌握技术
-3. **源码研读**：分析优秀开源项目实现
-4. **社区参与**：关注最新研究和技术动态
-
----
-
-**🚀 探索AI前沿，构建智能未来**
 
