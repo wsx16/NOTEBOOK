@@ -117,17 +117,18 @@ static void OTA_ReportVersion(void)
 
     uint8_t buf[512] = {0};
     snprintf((char *)buf, sizeof(buf) - 1,
-             "POST /fuse-ota/c6uvuayOWT/666/version HTTP/1.1\r\n"
+             "POST " ONENET_OTA_PATH "/version HTTP/1.1\r\n"
              "Content-Type: application/json\r\n"
-             "Authorization:version=2022-05-01&res=userid%%2F489232"
-             "&et=1830668782&method=sha1&sign=qSg63iNZIbDi34Ieakr5JwiYdtY%%3D\r\n"
-             "Host: iot-api.heclouds.com\r\n"
+             "Authorization:" ONENET_AUTHORIZATION "\r\n"
+             "Host: " ONENET_HOST "\r\n"
              "Content-Length: %d\r\n\r\n%s",
              body_len, request_body);
 
     printf("Report version...\r\n");
-    while (OTA_SendAndCheck((char *)buf, "succ"))
-        ;
+    for (int r = 0; r < OTA_MAX_RETRIES; r++) {
+        if (OTA_SendAndCheck((char *)buf, "succ") == 0) break;
+        HAL_Delay(1000);
+    }
 }
 
 /* 查询新版本, 解析 tid / size / md5 */
@@ -135,12 +136,12 @@ static int OTA_CheckUpdate(void)
 {
     memset((char *)esp_buffer, 0, sizeof(esp_buffer));
 
-    uint8_t req[] =
-        "GET /fuse-ota/c6uvuayOWT/666/check?type=2&version=1.0 HTTP/1.1\r\n"
-        "Content-Type: application/json\r\n"
-        "Authorization:version=2022-05-01&res=userid%2F489232"
-        "&et=1830668782&method=sha1&sign=qSg63iNZIbDi34Ieakr5JwiYdtY%3D\r\n"
-        "Host: iot-api.heclouds.com\r\n\r\n";
+    uint8_t req[512] = {0};
+    snprintf((char *)req, sizeof(req) - 1,
+             "GET " ONENET_OTA_PATH "/check?type=2&version=1.0 HTTP/1.1\r\n"
+             "Content-Type: application/json\r\n"
+             "Authorization:" ONENET_AUTHORIZATION "\r\n"
+             "Host: " ONENET_HOST "\r\n\r\n");
 
     HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_buffer, sizeof(esp_buffer));
     HAL_UART_Transmit(&huart5, req, strlen((char *)req), 500);
@@ -237,10 +238,9 @@ static int OTA_DownloadFirmware(void)
 
         uint8_t req[512] = {0};
         snprintf((char *)req, sizeof(req) - 1,
-                 "GET /fuse-ota/c6uvuayOWT/666/%s/download HTTP/1.1\r\n"
-                 "Authorization:version=2022-05-01&res=userid%%2F489232"
-                 "&et=1830668782&method=sha1&sign=qSg63iNZIbDi34Ieakr5JwiYdtY%%3D\r\n"
-                 "Host: iot-api.heclouds.com\r\n"
+                 "GET " ONENET_OTA_PATH "/%s/download HTTP/1.1\r\n"
+                 "Authorization:" ONENET_AUTHORIZATION "\r\n"
+                 "Host: " ONENET_HOST "\r\n"
                  "Range:bytes=%d-%d\r\n\r\n",
                  tid_str, start, end);
 
@@ -313,12 +313,31 @@ OTA_Status_t OTA_Init(void)
     send_AT_Cmd("AT+RST", "ready", 3000);
     CONNECT_WIFI();
 
-    while (!send_AT_Cmd("AT+CIPSTART=\"TCP\",\"183.230.40.33\",80", "OK", 1000))
-        ;
-    while (!send_AT_Cmd("AT+CIPMODE=1", "OK", 1000))
-        ;
-    while (!send_AT_Cmd("AT+CIPSEND", ">", 1000))
-        ;
+    char at_buf[128];
+    snprintf(at_buf, sizeof(at_buf),
+             "AT+CIPSTART=\"TCP\",\"%s\",%d", ONENET_OTA_SERVER, ONENET_OTA_PORT);
+
+    int retries;
+    for (retries = 0; retries < OTA_MAX_RETRIES; retries++) {
+        if (send_AT_Cmd(at_buf, "OK", 2000)) break;
+        HAL_Delay(1000);
+    }
+    if (retries >= OTA_MAX_RETRIES) {
+        printf("TCP connect failed after %d retries\r\n", OTA_MAX_RETRIES);
+        return OTA_ERR_NETWORK;
+    }
+
+    for (retries = 0; retries < OTA_MAX_RETRIES; retries++) {
+        if (send_AT_Cmd("AT+CIPMODE=1", "OK", 1000)) break;
+        HAL_Delay(500);
+    }
+    if (retries >= OTA_MAX_RETRIES) return OTA_ERR_NETWORK;
+
+    for (retries = 0; retries < OTA_MAX_RETRIES; retries++) {
+        if (send_AT_Cmd("AT+CIPSEND", ">", 1000)) break;
+        HAL_Delay(500);
+    }
+    if (retries >= OTA_MAX_RETRIES) return OTA_ERR_NETWORK;
     printf("Network ready\r\n");
 
     /* 2. 检查是否有未完成的下载进度 (断点续传) */

@@ -58,8 +58,9 @@ void parse_current_ssid(void) {
 
 void CONNECT_WIFI()
 {
-    // 2. 确保开启自动连接
-    send_AT_Cmd("AT+CWJAP=\"Redmi K70\",\"200212137\"", "WIFI GOT IP", 10000);
+    // 2. Connect to configured WiFi AP
+    sprintf(cmd_buffer, "AT+CWJAP=\"%s\",\"%s\"", WIFI_SSID, WIFI_PWD);
+    send_AT_Cmd(cmd_buffer, "WIFI GOT IP", 10000);
     printf("等待 WiFi 自动连接...\r\n");
 
     bool connected = false;

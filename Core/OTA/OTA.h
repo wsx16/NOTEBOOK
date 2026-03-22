@@ -5,6 +5,8 @@
 #include "version.h"
 #include "md5.h"
 
+#define OTA_MAX_RETRIES  10   /* Max retry count for network operations */
+
 /* OTA 状态码 */
 typedef enum {
     OTA_OK = 0,

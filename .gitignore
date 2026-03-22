@@ -49,6 +49,16 @@ desktop.ini
 *~
 
 # =========================
+# Private credentials
+# =========================
+config_private.h
+
+# =========================
+# Unused LVGL stock demos
+# =========================
+Core/lvgl/demos/
+
+# =========================
 # Claude Code local settings
 # =========================
 .claude/settings.local.json
