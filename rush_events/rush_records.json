@@ -159,5 +159,334 @@
     "message": "警告：跟车冲岗\n可疑车牌：ADC5213",
     "warning_type": "跟车冲岗",
     "image_path": "rush_events\\2026-03-21 17-53-15_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 17:58:35",
+    "plate": "鄂ADB7379",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂ADB7379",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 17-58-35_鄂ADB7379.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:14:32",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-14-32_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:14:35",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-14-35_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:14:52",
+    "plate": "鄂A1D50A",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A1D50A",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-14-52_鄂A1D50A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:15:12",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-15-12_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:15:15",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-15-15_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:15:25",
+    "plate": "鄂J2Z285",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂J2Z285",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-15-25_鄂J2Z285.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:15:43",
+    "plate": "鄂A101ZA",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A101ZA",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-15-43_鄂A101ZA.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:15:49",
+    "plate": "鄂A101ZA",
+    "message": "警告：撞杆冲岗\n可疑车牌：鄂A101ZA",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-15-49_鄂A101ZA.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:16:14",
+    "plate": "鄂A4KM98",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A4KM98",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-16-14_鄂A4KM98.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:16:21",
+    "plate": "鄂ADU0238",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂ADU0238",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-16-21_鄂ADU0238.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:16:44",
+    "plate": "鄂AD45626",
+    "message": "警告：撞杆冲岗\n可疑车牌：鄂AD45626",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-16-44_鄂AD45626.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:17:01",
+    "plate": "鄂AAK7308",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂AAK7308",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-17-01_鄂AAK7308.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:17:21",
+    "plate": "鄂ADY8303",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂ADY8303",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-17-21_鄂ADY8303.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:17:26",
+    "plate": "ADB9515",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADB9515",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-17-26_ADB9515.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:24:21",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-24-21_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:24:26",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-24-26_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:24:43",
+    "plate": "鄂A1D50A",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A1D50A",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-24-43_鄂A1D50A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:25:02",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-25-02_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:25:07",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-25-07_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:25:17",
+    "plate": "鄂J2Z285",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂J2Z285",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-25-17_鄂J2Z285.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:25:36",
+    "plate": "鄂A101ZA",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A101ZA",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-25-36_鄂A101ZA.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:32:44",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-32-44_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:32:49",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-32-49_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:33:08",
+    "plate": "鄂A1D50A",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂A1D50A",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-33-08_鄂A1D50A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:33:26",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-33-26_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:33:31",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-33-31_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:38:34",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-38-34_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:38:38",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-38-38_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:38:57",
+    "plate": "辽A1D50A",
+    "message": "警告：跟车冲岗\n可疑车牌：辽A1D50A",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-38-57_辽A1D50A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:39:16",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-39-16_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:39:20",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-39-20_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:39:35",
+    "plate": "粤ADZ5756",
+    "message": "警告：跟车冲岗\n可疑车牌：粤ADZ5756",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-39-35_粤ADZ5756.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:39:56",
+    "plate": "鄂A1017A",
+    "message": "警告：撞杆冲岗\n可疑车牌：鄂A1017A",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-39-56_鄂A1017A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:40:12",
+    "plate": "粤KC9E39",
+    "message": "警告：跟车冲岗\n可疑车牌：粤KC9E39",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-40-12_粤KC9E39.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:40:19",
+    "plate": "云E粤ADB7379",
+    "message": "警告：撞杆冲岗\n可疑车牌：云E粤ADB7379",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-40-19_云E粤ADB7379.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:40:33",
+    "plate": "京ADU0238",
+    "message": "警告：跟车冲岗\n可疑车牌：京ADU0238",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-40-33_京ADU0238.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:40:58",
+    "plate": "鄂AD45600",
+    "message": "警告：撞杆冲岗\n可疑车牌：鄂AD45600",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-40-58_鄂AD45600.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:41:13",
+    "plate": "鄂AAK7308",
+    "message": "警告：跟车冲岗\n可疑车牌：鄂AAK7308",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-41-13_鄂AAK7308.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:41:34",
+    "plate": "粤ADY850",
+    "message": "警告：跟车冲岗\n可疑车牌：粤ADY850",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-41-34_粤ADY850.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:47:31",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-47-31_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:47:37",
+    "plate": "浙JH035F",
+    "message": "警告：撞杆冲岗\n可疑车牌：浙JH035F",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-47-37_浙JH035F.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:47:53",
+    "plate": "粤A1050A",
+    "message": "警告：跟车冲岗\n可疑车牌：粤A1050A",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-47-53_粤A1050A.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:48:00",
+    "plate": "ADC5213",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADC5213",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-48-00_ADC5213.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:48:19",
+    "plate": "ADB9515",
+    "message": "警告：跟车冲岗\n可疑车牌：ADB9515",
+    "warning_type": "跟车冲岗",
+    "image_path": "rush_events\\2026-03-21 18-48-19_ADB9515.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:48:23",
+    "plate": "ADB9515",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADB9515",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-48-23_ADB9515.jpg"
+  },
+  {
+    "timestamp": "2026-03-21 18:48:25",
+    "plate": "ADB9515",
+    "message": "警告：撞杆冲岗\n可疑车牌：ADB9515",
+    "warning_type": "撞杆冲岗",
+    "image_path": "rush_events\\2026-03-21 18-48-25_ADB9515.jpg"
   }
 ]

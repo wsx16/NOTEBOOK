@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import sys; sys.exit\\(0\\)\")",
+      "Bash(python -c \":*)",
+      "Bash(python -m py_compile main.py)",
+      "Bash(python -m py_compile db.py)",
+      "Bash(python -m py_compile migrate_to_db.py)",
+      "Bash(grep -v \"^$\")",
+      "Bash(timeout /t 4 /nobreak)",
+      "Bash(tasklist)",
+      "Bash(findstr /i \"python\")",
+      "Bash(tasklist.exe)",
+      "Bash(start pythonw:*)",
+      "Bash(rm __pycache__/1.cpython-311.pyc)",
+      "Bash(rm 详细说明.txt)",
+      "Bash(rm system.log.2025-04-10 system.log.2025-04-11 system.log.2025-04-12 system.log.2025-04-13 system.log.2025-04-14 system.log.2025-04-28 system.log.2025-04-29)",
+      "Bash(rm -rf .idea/)",
+      "Bash(rm -rf video/.accelerate/)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''main.py'',''r'',encoding=''utf-8''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(grep -E '\\\\.\\(py|json|txt\\)$')",
+      "Bash(ls -la /e/Desktop/System/*.pt)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
