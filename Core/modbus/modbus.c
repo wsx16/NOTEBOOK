@@ -290,7 +290,7 @@ void modbus_ack_send(uint8_t dev, uint8_t func, uint8_t ERR)
 	}
 	putchar(10);
 
-    // 发送数据到串口 
-	// HAL_UART_Transmit(&huart1, ack_buffer, 5, 10);
+    // 发送响应帧到 RS-485 总线
+	HAL_UART_Transmit(&huart1, ack_buffer, 5, 10);
 }
 
