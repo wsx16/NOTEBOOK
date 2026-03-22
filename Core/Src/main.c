@@ -58,7 +58,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t f1_rx_buffer[512]; 
+uint8_t f0_rx_buffer[512]; 
 lv_ui guider_ui;
 char wifi_ssid[32];
 char wifi_pwd[64];
@@ -88,11 +88,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-#if 1
-	__set_MSP(*((volatile unsigned long int *)0x0800A000));  
-	SCB->VTOR = FLASH_BASE | 0xA000;
-	__enable_irq();
-#endif
+	/* VTOR 由 Bootloader 跳转时已正确设置, 无需 App 自行设置 */
 	/* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -125,7 +121,7 @@ int main(void)
   // 启动 MQTT (ESP8266) 接收 - UART5被OTA和MQTT共享
 	HAL_UARTEx_ReceiveToIdle_IT(&huart5, (uint8_t *)esp_buffer, RX_BUF_SIZE);
 	// 启动 F0 接收
-  HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
+  HAL_UARTEx_ReceiveToIdle_IT(&huart3, f0_rx_buffer, sizeof(f0_rx_buffer));
 	
 	
 	FT6336_init();
@@ -242,14 +238,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     {
 				BaseType_t hpw = pdFALSE;
 
-				// 只搬运数据到StreamBuffer，不做printf
 				if (sb_f1_log != NULL && Size > 0)
 				{
-						xStreamBufferSendFromISR(sb_f1_log, f1_rx_buffer, Size, &hpw);
+						xStreamBufferSendFromISR(sb_f1_log, f0_rx_buffer, Size, &hpw);
 				}
 
 				// 立刻重启接收
-				HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
+				HAL_UARTEx_ReceiveToIdle_IT(&huart3, f0_rx_buffer, sizeof(f0_rx_buffer));
 
 				portYIELD_FROM_ISR(hpw);
     }
@@ -273,7 +268,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
     }
 		// 指纹模块 F0 串口防锁死重启
     else if (huart->Instance == USART3) {
-        HAL_UARTEx_ReceiveToIdle_IT(&huart3, f1_rx_buffer, sizeof(f1_rx_buffer));
+        HAL_UARTEx_ReceiveToIdle_IT(&huart3, f0_rx_buffer, sizeof(f0_rx_buffer));
     }
 }
 /* USER CODE END 4 */

@@ -28,7 +28,8 @@
 #define FINGER_CMD_ENROLL  '1' // ASCII '1'
 #define FINGER_CMD_UNLOCK  '2' // ASCII '2'
 #define FINGER_CMD_DELETE  '3' // ASCII '3'
-#define FUNC_SAVE_WIFI  0xAA  
+#define FUNC_SAVE_WIFI  0xAA
+#define FUNC_OTA_START  0xBB  /* 触发 OTA 升级: FF BB [CRC16] */
 
 typedef struct
 {

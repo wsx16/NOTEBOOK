@@ -1,0 +1,54 @@
+# =========================
+# Keil MDK-ARM Build Output
+# =========================
+# Object files & dependencies
+*.o
+*.d
+*.crf
+*.exf
+
+# Linker output
+*.axf
+*.hex
+*.bin
+*.map
+*.htm
+*.build_log.htm
+*.lnp
+*.dep
+*.lst
+*.sct
+!MDK-ARM/STM32U5/STM32U5.sct
+
+# Keil misc
+*.iex
+*.Bak
+*.bak
+
+# =========================
+# Keil IDE User Files
+# =========================
+# Per-user GUI layout (contains username)
+*.uvguix.*
+# Options file (per-user debug settings)
+*.uvoptx
+
+# =========================
+# VS Code / Keil Assistant
+# =========================
+.vscode/
+MDK-ARM/.vscode/
+
+# =========================
+# OS & Editor
+# =========================
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+*~
+
+# =========================
+# Claude Code local settings
+# =========================
+.claude/settings.local.json

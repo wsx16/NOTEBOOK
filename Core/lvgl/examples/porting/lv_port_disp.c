@@ -183,7 +183,7 @@ void disp_disable_update(void)
 //    lv_disp_flush_ready(disp_drv);
 //		
 //}
-/* 替换 lv_port_disp.c 中的 disp_flush 函数 */
+
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     if(disp_flush_enabled) {

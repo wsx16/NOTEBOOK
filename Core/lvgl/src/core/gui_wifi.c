@@ -84,7 +84,7 @@ void create_wifi_settings_window(void)
     // 6. 连接保存按钮
     lv_obj_t * btn_save = lv_btn_create(wifi_win);
     lv_obj_set_width(btn_save, 120);
-	lv_obj_set_style_pad_row(wifi_win, 10, 0); 
+		lv_obj_set_style_pad_row(wifi_win, 10, 0); 
     
     lv_obj_t * lbl_save = lv_label_create(btn_save);
     lv_label_set_text(lbl_save, "Save & Connect");

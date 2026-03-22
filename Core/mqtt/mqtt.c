@@ -156,7 +156,7 @@ void MQTT_init(void) {
             send_AT_Cmd(cmd_buffer, "OK", 2000);
         } else {
             printf("MQTT 连接失败 (可能服务器不可达)\r\n");
-        }
+        } 
     } else {
         // --- 没连上网的情况 ---
         printf("WiFi 未连接 (可能是新环境或密码错误)。\r\n");

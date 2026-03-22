@@ -68,7 +68,7 @@ const osThreadAttr_t defaultTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void lvgl(void const * argument);
-void F1_LogTask(void *argument);
+void F0_LogTask(void *argument);
  
 /* USER CODE END FunctionPrototypes */
 
@@ -114,8 +114,8 @@ void MX_FREERTOS_Init(void) {
 	{
 		printf("lvgl create ok\n");
 	}
-	ret = xTaskCreate(F1_LogTask,
-										"F1Log",
+	ret = xTaskCreate(F0_LogTask,
+										"F0Log",
 										1024,           
 										NULL,
 										osPriorityBelowNormal,  
@@ -144,10 +144,14 @@ void modbus_parse_task(void *argument)
 {
   /* USER CODE BEGIN defaultTask */
 	modbus_pack_t pack;
-	// uint8_t dev;
-	// uint8_t func;
 	int ret;
-//  OTA_init();
+
+	/*--- A/B OTA: 启动确认 ---*/
+	OTA_ConfirmBoot();
+
+	/*--- 如需触发 OTA 升级, 取消下面注释 ---*/
+//  OTA_Init();
+
   /* Infinite loop */
   for(;;)
   {
@@ -176,7 +180,7 @@ void lvgl(void const *argument)
 	}
 }
 
-void F1_LogTask(void *argument)
+void F0_LogTask(void *argument)
 {
     uint8_t ch;
     int line_start = 1;
@@ -200,7 +204,5 @@ void F1_LogTask(void *argument)
         }
     }
 }
-
-
 /* USER CODE END Application */
 

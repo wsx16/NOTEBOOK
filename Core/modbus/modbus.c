@@ -1,4 +1,5 @@
 #include "modbus.h"
+#include "OTA.h"
 
 // 定义串口接收缓冲区，大小由 MODBUS_MAX_PACK_LEN 宏决定
 uint8_t buffer[MODBUS_MAX_PACK_LEN];
@@ -7,7 +8,7 @@ uint16_t uart_rx_len;
 extern char wifi_ssid[32];
 extern char wifi_pwd[64];
 extern char cmd_buffer[128];
-extern uint8_t f1_rx_buffer[512]; 
+extern uint8_t f0_rx_buffer[512]; 
 /**
  * @brief  Modbus CRC16 校验计算函数
  * @param  data:   指向要计算的数据缓冲区的指针
@@ -220,7 +221,14 @@ void peripheral_ctrl(const modbus_pack_t *p)
 				break;
 			}
 		case DEV_SYSTEM:
-			if (func == FUNC_SAVE_WIFI) 
+			if (func == FUNC_OTA_START)
+			{
+				printf("[OTA] Triggered by Modbus FF BB\r\n");
+				modbus_ack_send(dev, func, MODBUS_OK);
+				HAL_Delay(100);  /* 等待应答发出 */
+				OTA_Init();      /* 阻塞执行, 成功后 NVIC_SystemReset() */
+			}
+			else if (func == FUNC_SAVE_WIFI)
 			{
 				printf("[System] Start configuring WiFi...\r\n");
 				printf("SSID: %s, PWD: %s\r\n", wifi_ssid, wifi_pwd);
