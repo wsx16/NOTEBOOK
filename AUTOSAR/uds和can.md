@@ -1,4 +1,4 @@
- autosar架构：
+  autosar架构：
         应用层（Appl）
    （SWC）（SWC）（SWC）
             |
