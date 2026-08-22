@@ -1,0 +1,1 @@
+之前已经在vscode中配置好了espressif插件了，还有新建工程以及环境配置，这次只需要import program，
